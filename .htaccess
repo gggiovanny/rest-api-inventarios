@@ -3,10 +3,7 @@ Options +FollowSymlinks
 RewriteEngine on
 
 # map neat URL to internal URL
-RewriteRule ^get/list            RestController.php?view=all [nc,qsa]
-RewriteRule ^get/list/$          RestController.php?view=all [nc,qsa]
 
-# ENTRADA: get/TABLE/    SALIDA: test.php?table=TABLE
-RewriteRule ^gett/(\w+)/?$   test.php?table=$1 [nc,qsa]
-
-RewriteRule ^get/(\w+)/?$   RestController.php?table=$1 [nc,qsa]
+# ENTRADA: TABLE/    SALIDA: test.php?table=TABLE
+RewriteRule ^(\w+)/?$   RestController.php?table=$1 [nc,qsa]
+RewriteRule ^(\w+)/?col=(\w+)$   RestController.php?table=$1&col=$2 [nc,qsa]

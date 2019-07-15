@@ -4,10 +4,21 @@ require_once("DB/SQLController.php");
 
 class RestHandler extends SimpleRest {
 
-	function getTable($table) {	
+	private $sql;
 
-		$sql = new SQLController("localhost","android-test","123456","grupodic_activofijo");
-		$rawData = $sql->sqlSelectTable($table);
+	function __construct()
+	{
+		$this->sql = new SQLController("localhost","android-test","123456","grupodic_activofijo");
+	}
+
+	function getTable($table, $col="*")
+	{	
+		if($col == "*") {
+			$rawData = $this->sql->sqlSelectTable($table);
+		} else {
+			$rawData = $this->sql->sqlSelectTableColumn($table, $col);
+		}
+			
 
 		if(empty($rawData)) {
 			$statusCode = 404;
@@ -29,7 +40,7 @@ class RestHandler extends SimpleRest {
 	}
 	
 	public function encodeJson($responseData) {
-		$jsonResponse = json_encode($responseData);
+		$jsonResponse = json_encode($responseData, JSON_UNESCAPED_UNICODE);
 		return $jsonResponse;		
 	}
 }
