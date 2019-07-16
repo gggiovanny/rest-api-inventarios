@@ -30,11 +30,11 @@ class RestHandler extends SimpleRest {
 		$requestContentType = 'application/json';//$_POST['HTTP_ACCEPT'];
 		$this ->setHttpHeaders($requestContentType, $statusCode);
 		
-		//$result["output"] = $rawData;
+		$result["output"] = $rawData;
 				
 		if(strpos($requestContentType,'application/json') !== false){
-			//$response = $this->encodeJson($result);
-			$response = $this->encodeJson($rawData);
+			$response = $this->encodeJson($result);
+			//$response = $this->encodeJson($rawData);
 			echo $response;
 		}
 	}

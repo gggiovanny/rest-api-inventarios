@@ -53,7 +53,7 @@ class SQLController
 
 	public function sqlSelectTable($sTabla)
 	{
-		$query = "SELECT * FROM $sTabla";
+		$query = "SELECT * FROM $sTabla LIMIT 0, 10";
 		return $this->sqlExecuteQuery($query);
 	}
 
@@ -62,6 +62,14 @@ class SQLController
 		$query = "SELECT $col FROM $tabla";
 		return $this->sqlExecuteQuery($query);
 	}
+
+	public function sqlSelectTableRow($tabla, $row)
+	{
+		$query = "SELECT * FROM $tabla WHERE ";
+		return $this->sqlExecuteQuery($query);
+	}
+
+	
 
 	
 	
