@@ -8,7 +8,7 @@ class RestHandler extends SimpleRest {
 
 	function __construct()
 	{
-		$this->sql = new SQLController("localhost","android-test","123456","grupodic_activofijo");
+		$this->sql = new SQLController("host1.solucionesid.com","grupodic_activos","Vr3!em@UptvM","grupodic_activofijo");
 	}
 
 	function getTable($table, $col="*")
@@ -44,3 +44,5 @@ class RestHandler extends SimpleRest {
 		return $jsonResponse;		
 	}
 }
+
+?>

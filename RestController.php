@@ -20,4 +20,4 @@ if($col == "") {
 } else {
 	$handler->getTable($table, $col);
 }
-
+?>
