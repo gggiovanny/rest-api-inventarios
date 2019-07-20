@@ -8,7 +8,7 @@ class RestHandler extends SimpleRest {
 
 	function __construct()
 	{
-		$this->sql = new SQLController("host1.solucionesid.com","grupodic_activos","Vr3!em@UptvM","grupodic_activofijo");
+		$this->sql = new SQLController("localhost","root","","grupodic_activofijo");
 	}
 
 	function getTable($table, $col="*")
