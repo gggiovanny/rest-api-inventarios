@@ -1,0 +1,3 @@
+#Ignorando dependencias de composer
+# instalar con "composer require illuminate/database:v5.4.36"
+vendor/
