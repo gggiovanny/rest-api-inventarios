@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-require_once dirname(__FILE__).'/../../Activo.php';
+require_once dirname(__FILE__).'/../../Models/Activo.php';
 
 use Illuminate\Http\Request;
 use App\Models\Activo;

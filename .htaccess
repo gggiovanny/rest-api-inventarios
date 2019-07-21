@@ -1,0 +1,8 @@
+# Turn rewrite engine on
+Options +FollowSymlinks
+RewriteEngine on
+
+# Rewrite all those to insert /folder
+RewriteRule ^(.*)$ /api/public/api/$1 [L]
+
+
