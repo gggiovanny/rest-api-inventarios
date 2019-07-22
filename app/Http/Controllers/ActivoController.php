@@ -1,10 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-require_once dirname(__FILE__).'/../../Models/Activo.php';
 
 use Illuminate\Http\Request;
 use App\Models\Activo;
+use Illuminate\Support\Facades\DB;
 
 
 class ActivoController extends Controller
@@ -49,8 +49,8 @@ class ActivoController extends Controller
      */
     public function show($id)
     {
-        //
         return Activo::find($id);
+        //return $this->getUbicacion($id);
     }
 
     /**
@@ -85,5 +85,31 @@ class ActivoController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /* funcion para obtener la ubicacion del activo a partir de su id
+    PARAMS: idActivoFijo
+    RETURN: idDepartamento
+    */
+    private function getUbicacion($idActivoFijo)
+    {
+        /*
+        SELECT
+            MV.destino AS 'idDepartamento'
+        FROM movimientos MV
+        JOIN movimiento_detalle MVD
+            ON MV.idMovimiento = MVD.idMovimiento
+        WHERE MVD.idActivoFijo = 117
+        ORDER BY MV.fecha_acepta desc
+        LIMIT 1;
+        */
+
+        return DB::table('movimientos')
+                    ->join('movimiento_detalle', 'movimientos.idMovimiento', '=', 'movimiento_detalle.idMovimiento')
+                    ->select('*')
+                    ->where('movimiento_detalle.idActivoFijo', $idActivoFijo)
+                    ->orderBy('fecha_acepta', 'desc')
+                    ->take(1)
+                    ->get();
     }
 }
