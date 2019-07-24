@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Activo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB as bd2;
+
 
 
 class ActivoController extends Controller
@@ -14,10 +16,41 @@ class ActivoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-        return Activo::all();
+         /*echo($request->input('xd') );*/
+
+/*
+         $test = DB::table('movimientos')
+         ->join('movimiento_detalle', 'movimientos.idMovimiento', '=', 'movimiento_detalle.idMovimiento')
+         ->select('*')
+         ->where('movimiento_detalle.idActivoFijo', $idActivoFijo)
+         ->orderBy('fecha_acepta', 'desc')
+         ->take(1)
+         ->get();
+*/
+        
+        return DB::table('movimiento_detalle AS MVD')
+                ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
+                ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
+                ->join('departamentos AS DEP', 'MV.destino', 'DEP.idDepartamento')
+                ->join('empresas AS EMP', 'DEP.idEmpresa', 'EMP.idEmpresa')
+                ->select(   'MVD.idActivoFijo',
+                            'ACT.descripcion',
+                            'EMP.nombre',
+                            'DEP.nombre')
+                ->where('MV.fecha_acepta', function($subquery) {
+                    $subquery-> bd2::table('movimientos as m')
+                            ->join('movimiento_detalle as md', 'm.idMovimiento', 'md.idMovimiento')
+                            ->selectRaw('MAX(m.fecha_acepta)')
+                            ->where('md.idActivoFijo', 'MVD.idActivoFijo');
+                })
+
+
+                ->where('MVD.idActivoFijo', '223')
+                ->orderBy('idActivoFijo', 'asc')
+                ->get()
+                ;
     }
 
     /**
