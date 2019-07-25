@@ -20,40 +20,53 @@ class ActivoController extends Controller
     {        
         $idEmpresa = $request->input('empresa');
         $idDepartamento = $request->input('departamento');
+        $mostrarSinUbicacion = $request->input('sinUbicacion') ? true : false;
 
-        return DB::table('movimiento_detalle AS MVD')
-                ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
-                ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
-                ->join('departamentos AS DEP', 'MV.destino', 'DEP.idDepartamento')
-                ->join('empresas AS EMP', 'DEP.idEmpresa', 'EMP.idEmpresa')
-                ->select(   'MVD.idActivoFijo',
-                            'ACT.descripcion',
-                            'EMP.nombre',
-                            'DEP.nombre')
-                     /*->where('MV.fecha_acepta', '=', function($subq)
-                    {
-                        return $subq->select(DB::raw('max(m.fecha_acepta)'))
-                        ->from('movimientos as m')
-                        ->join('movimiento_detalle as md', 'm.idMovimiento', 'md.idMovimiento')
-                        ->where('md.idActivoFijo', 'MVD.idActivoFijo');
-                    })*/
-                ->whereRaw('MV.fecha_acepta =	(
-                    select MAX(m.fecha_acepta)
-                    from movimientos m
-                    inner join movimiento_detalle md
-                        on m.idMovimiento = md.idMovimiento
-                    where md.idActivoFijo = MVD.idActivoFijo
-                    )') 
-                ->when($idEmpresa, function($ifwhere) use ($idEmpresa) {
-                    return $ifwhere->where('EMP.idEmpresa', $idEmpresa); })
-                ->when($idDepartamento, function($ifwhere) use ($idDepartamento) {
-                    return $ifwhere->where('DEP.idDepartamento', $idDepartamento); })
+        if($mostrarSinUbicacion)
+        {
+            return Activo::leftJoin('movimiento_detalle AS MVD', 'activosfijos.idActivoFijo', 'MVD.idActivoFijo')
+                    ->select('activosfijos.idActivoFijo', 'activosfijos.descripcion', 'activosfijos.idClasificacion')
+                    ->whereNull('MVD.idMovimientoDetalle')
+
+                    ->get()
+                    ;
+        }
+        else
+        {
+            return DB::table('movimiento_detalle AS MVD')
+                    ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
+                    ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
+                    ->join('departamentos AS DEP', 'MV.destino', 'DEP.idDepartamento')
+                    ->join('empresas AS EMP', 'DEP.idEmpresa', 'EMP.idEmpresa')
+                    ->select(   'MVD.idActivoFijo',
+                                'ACT.descripcion',
+                                'ACT.idClasificacion'
+                            )
+                         /*->where('MV.fecha_acepta', '=', function($subq)
+                        {
+                            return $subq->select(DB::raw('max(m.fecha_acepta)'))
+                            ->from('movimientos as m')
+                            ->join('movimiento_detalle as md', 'm.idMovimiento', 'md.idMovimiento')
+                            ->where('md.idActivoFijo', 'MVD.idActivoFijo');
+                        })*/
+                    ->whereRaw('MV.fecha_acepta =	(
+                        select MAX(m.fecha_acepta)
+                        from movimientos m
+                        inner join movimiento_detalle md
+                            on m.idMovimiento = md.idMovimiento
+                        where md.idActivoFijo = MVD.idActivoFijo
+                        )') 
+                    ->when($idEmpresa, function($ifwhere) use ($idEmpresa) {
+                        return $ifwhere->where('EMP.idEmpresa', $idEmpresa); })
+                    ->when($idDepartamento, function($ifwhere) use ($idDepartamento) {
+                        return $ifwhere->where('DEP.idDepartamento', $idDepartamento); })
+    
                     
+                    ->orderBy('idActivoFijo', 'asc')
+                    ->get()
+                    ;
+        }
 
-                
-                ->orderBy('idActivoFijo', 'asc')
-                ->get()
-                ;
     }
 
     /**
