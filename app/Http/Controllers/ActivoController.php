@@ -17,19 +17,10 @@ class ActivoController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {
-         /*echo($request->input('xd') );*/
+    {        
+        $idEmpresa = $request->input('empresa');
+        $idDepartamento = $request->input('departamento');
 
-/*
-         $test = DB::table('movimientos')
-         ->join('movimiento_detalle', 'movimientos.idMovimiento', '=', 'movimiento_detalle.idMovimiento')
-         ->select('*')
-         ->where('movimiento_detalle.idActivoFijo', $idActivoFijo)
-         ->orderBy('fecha_acepta', 'desc')
-         ->take(1)
-         ->get();
-*/
-        
         return DB::table('movimiento_detalle AS MVD')
                 ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
                 ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
@@ -39,15 +30,27 @@ class ActivoController extends Controller
                             'ACT.descripcion',
                             'EMP.nombre',
                             'DEP.nombre')
-                ->where('MV.fecha_acepta', function($subquery) {
-                    $subquery-> bd2::table('movimientos as m')
-                            ->join('movimiento_detalle as md', 'm.idMovimiento', 'md.idMovimiento')
-                            ->selectRaw('MAX(m.fecha_acepta)')
-                            ->where('md.idActivoFijo', 'MVD.idActivoFijo');
-                })
+                     /*->where('MV.fecha_acepta', '=', function($subq)
+                    {
+                        return $subq->select(DB::raw('max(m.fecha_acepta)'))
+                        ->from('movimientos as m')
+                        ->join('movimiento_detalle as md', 'm.idMovimiento', 'md.idMovimiento')
+                        ->where('md.idActivoFijo', 'MVD.idActivoFijo');
+                    })*/
+                ->whereRaw('MV.fecha_acepta =	(
+                    select MAX(m.fecha_acepta)
+                    from movimientos m
+                    inner join movimiento_detalle md
+                        on m.idMovimiento = md.idMovimiento
+                    where md.idActivoFijo = MVD.idActivoFijo
+                    )') 
+                ->when($idEmpresa, function($ifwhere) use ($idEmpresa) {
+                    return $ifwhere->where('EMP.idEmpresa', $idEmpresa); })
+                ->when($idDepartamento, function($ifwhere) use ($idDepartamento) {
+                    return $ifwhere->where('DEP.idDepartamento', $idDepartamento); })
+                    
 
-
-                ->where('MVD.idActivoFijo', '223')
+                
                 ->orderBy('idActivoFijo', 'asc')
                 ->get()
                 ;
