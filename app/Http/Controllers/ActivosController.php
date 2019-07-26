@@ -5,11 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Activo;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\DB as bd2;
 
-
-
-class ActivoController extends Controller
+class ActivosController extends Controller
 {
     /**
      * Display a listing of the resource.
