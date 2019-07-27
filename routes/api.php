@@ -20,4 +20,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 //Activos
 Route::apiResource('activos', 'ActivosController');
-Route::apiResource('users', 'UsersController');
+Route::apiResource('auth', 'AuthController');

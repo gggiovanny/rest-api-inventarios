@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Activo;
 use Illuminate\Support\Facades\DB;
+use App\Http\ControllersAuthController;
+use Mockery\Exception;
 
 class ActivosController extends Controller
 {
@@ -14,7 +16,11 @@ class ActivosController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {     
+    {
+       AuthController::validateCredentials($request);
+
+       $query = null;
+
         /** Mostrar activos sin ubicacion */
         $mostrarSinUbicacion = $request->input('sinUbicacion') ? true : false;
         /** Paginado */
@@ -29,7 +35,7 @@ class ActivosController extends Controller
 
         if($mostrarSinUbicacion)
         {
-            return Activo::leftJoin('movimiento_detalle AS MVD', 'activosfijos.idActivoFijo', 'MVD.idActivoFijo')
+            $query = Activo::leftJoin('movimiento_detalle AS MVD', 'activosfijos.idActivoFijo', 'MVD.idActivoFijo')
                         ->select('activosfijos.idActivoFijo', 'activosfijos.descripcion', 'activosfijos.idClasificacion')
                         ->whereNull('MVD.idMovimientoDetalle')
                         ->when($idClasificacion, function($ifwhere) use ($idClasificacion) {
@@ -45,7 +51,7 @@ class ActivosController extends Controller
         }
         else
         {
-            return DB::table('movimiento_detalle AS MVD')
+            $query = DB::table('movimiento_detalle AS MVD')
                         ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
                         ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
                         ->join('departamentos AS DEP', 'MV.destino', 'DEP.idDepartamento')
@@ -77,6 +83,7 @@ class ActivosController extends Controller
                         ;
         }
 
+        return self::queryOk($query);
     }
 
     /**
@@ -106,10 +113,10 @@ class ActivosController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($id, Request $request)
     {
-        return Activo::find($id);
-        //return $this->getUbicacion($id);
+        AuthController::validateCredentials($request);
+        return self::queryOk(Activo::find($id));
     }
 
     /**
