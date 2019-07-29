@@ -11,7 +11,8 @@ use Datetime, DatetimeZone, DateInterval;
 class AuthController extends Controller
 {
     private static $key = 'EW-LTW2%YSzQ#Knf+P*FnYnh&9rKt77X9';
-    private static $token_expire_delay = 'P10D'; //tiempo que durará valido el token a partir de su creacion
+    #private static $token_expire_delay = 'P10D'; //tiempo que durará valido el token a partir de su creacion
+    private static $token_expire_delay = 'PT1H';
 
     /**
      * Display a listing of the resource.
@@ -58,11 +59,13 @@ class AuthController extends Controller
     private function getToken($userRequested, $passwdRequested)
     {
         $usuario_correcto = false;
-        
+        $userID = '';
+
         $users = User::all();
         foreach($users as $user) {
             if($user->username === $userRequested && $user->password === md5($passwdRequested)) {
                 $usuario_correcto = true;
+                $userID = $user->id;
                 break;
             }         
         }
@@ -75,7 +78,8 @@ class AuthController extends Controller
                     'exp' => $expire->getTimestamp(),
                     'cid' => self::clientID(),
                     'data' => [ //credenciales
-                        'username' => $userRequested
+                        'username' => $userRequested,
+                        'id' => $userID
                     ]
                 );
 
