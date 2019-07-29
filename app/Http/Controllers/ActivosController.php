@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Activo;
 use Illuminate\Support\Facades\DB;
-use App\Http\ControllersAuthController;
-use Mockery\Exception;
 
 class ActivosController extends Controller
 {
