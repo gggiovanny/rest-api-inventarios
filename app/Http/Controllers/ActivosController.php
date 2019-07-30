@@ -30,6 +30,9 @@ class ActivosController extends Controller
         $idClasificacion = $request->input('clasificacion');
         /** Busqueda */
         $search = $request->input('search');
+        /** Ordenamiento */
+        $sort_by = $request->input('sort_by') ? $request->input('sort_by') : 'idActivoFijo';
+        $sort_order = $request->input('sort_order') ? $request->input('sort_order') : 'asc';
 
         if($mostrarSinUbicacion)
         {
@@ -41,7 +44,7 @@ class ActivosController extends Controller
                         ->when($search, function($ifwhere) use ($search) {
                             return $ifwhere->where('activosfijos.descripcion', 'like', '%'.$search.'%'); })
 
-                        ->orderBy('idActivoFijo', 'asc')
+                        ->orderBy($sort_by, $sort_order)
                         ->skip(($page-1)*$page_size)
                         ->take($page_size)
                         ->get()
@@ -74,7 +77,7 @@ class ActivosController extends Controller
                         ->when($search, function($ifwhere) use ($search) {
                             return $ifwhere->where('ACT.descripcion', 'like', '%'.$search.'%'); })
                         
-                        ->orderBy('idActivoFijo', 'asc')
+                        ->orderBy($sort_by, $sort_order)
                         ->skip(($page-1)*$page_size)
                         ->take($page_size)
                         ->get()
