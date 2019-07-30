@@ -21,5 +21,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 //Activos
 Route::apiResource('activos', 'ActivosController');
+
 Route::apiResource('auth', 'AuthController');
 Route::apiResource('auditorias', 'AuditoriasController');
