@@ -22,8 +22,13 @@ class AuditoriasController extends Controller
        $page = $request->input('page') ? $request->input('page') : 1;
        /** Filtros */
        $user = $request->input('user');
-       $terminada = $request->input('terminada') ? true : null;
-       $guardado = $request->input('guadada')? true : null;
+       /** Filtrar por el estatus de la auditoria, donde:
+        * 0: cualquier status.
+        * 1: en curso.
+        * 2: terminada.
+        * 3: guardada (solo entonces se puede considerar como auditoria base).
+        */
+       $status = $request->input('status');
        /** Busqueda */
        $search = $request->input('search');
        /** Ordenamiento */
@@ -33,10 +38,29 @@ class AuditoriasController extends Controller
 
        $query = Auditoria::when($user, function($ifwhere) use ($user) {
                     return $ifwhere->where('idUser', $user); })
+
                     ->when($terminada, function($ifwhere) use ($terminada) {
                         return $ifwhere->where('terminada', $terminada); })
-                    ->when($guardado, function($ifwhere) {
+                    ->when($guardada, function($ifwhere) {
                         return $ifwhere->whereNotNull('fechaGuardada'); })
+
+                    ->when($status, function($filterstatus) use ($status){
+                        switch ($status) {
+                            case 1:
+                                return $filterstatus->where('terminada', false)
+                                        ->whereNull('fechaGuardada');
+                                break;
+                            case 2:
+                                return $filterstatus->where('terminada', true)
+                                        ->whereNull('fechaGuardada');
+                                break;
+                            case 3:
+                                return $filterstatus->whereNotNull('fechaGuardada');
+                                break;
+                            default:
+                                break;
+                        }
+                    })
                     ->when($search, function($ifwhere) use ($search) {
                         return $ifwhere->where('descripcion', 'like', '%'.$search.'%');
                     })
@@ -71,18 +95,16 @@ class AuditoriasController extends Controller
         AuthController::validateCredentials($request);
 
         /** Parametros necesarios para crear un nuevo registro */
-        $idAuditoriaBase = $request->input('idAuditoriaBase');
-        $idUser = $request->input('idUser');
+        $idUser = $request->input('user');
         $descripcion = $request->input('descripcion');
 
         /** Comprobacion de que se cumplen los parametros */
-        if(!($descripcion && $idUser && $idAuditoriaBase)) {
+        if(!($descripcion && $idUser)) {
             return self::warningNoParameters();
         }
 
         $newAuditoria = new Auditoria;
 
-        $newAuditoria->idAuditoriaBase = $idAuditoriaBase;
         $newAuditoria->idUser = $idUser;
         $newAuditoria->descripcion = $descripcion;
 
@@ -99,9 +121,11 @@ class AuditoriasController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        //
+        AuthController::validateCredentials($request);
+//        Auditoria::find
+
     }
 
     /**
@@ -127,7 +151,7 @@ class AuditoriasController extends Controller
         AuthController::validateCredentials($request);
 
         $terminada = $request->input('terminada');
-        $fechaGuardada = $request->input('fechaGuardada');
+        $fechaGuardada = $request->input('guardada');
 
         /** Verificacion de que existe la auditoria solicitada */
         $editAuditoria = Auditoria::find($id);

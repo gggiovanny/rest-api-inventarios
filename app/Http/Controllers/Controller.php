@@ -21,7 +21,7 @@ class Controller extends BaseController
     public static function queryOk($query)
     {
         $return = AuthController::status('ok', 'Query sucessful');
-        $return += ['query' => $query];
+        $return += ['list' => $query];
         return Response($return, 200);
     }
 
