@@ -64,6 +64,23 @@ class Controller extends BaseController
         return Response($return, 400);
     }
 
+    public static function warningAuditoriaGuardada()
+    {
+        $return = AuthController::status('warning', 'No se puede editar una auditoria marcada como guardada.');
+        return Response($return, 400);
+    }
+
+    public static function warningAuditoriaNoTerminada()
+    {
+        $return = AuthController::status('warning', 'No se puede marcar como guardada una auditoria no terminada.');
+        return Response($return, 400);
+    }
+    
+    public static function warningNoChanges()
+    {
+        $return = AuthController::status('warning', 'Sin cambios!');
+        return Response($return, 400);
+    }
     
 
     
