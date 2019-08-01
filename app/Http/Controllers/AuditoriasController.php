@@ -9,6 +9,40 @@ use Illuminate\Support\Facades\DB;
 class AuditoriasController extends Controller
 {
     /**
+     * Checa si la auditoria con la id proporcionada
+     * está marcada como guardada.
+     * @return boolean
+     */
+    private static function isSaved($idAuditoria)
+    {
+        $auditoria = Auditoria::find($idAuditoria);
+        if(!$auditoria) { return false;}
+        
+        if($auditoria->fechaGuardada) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Checa si la auditoria con la id proporcionada
+     * está marcada como terminada.
+     * @return boolean
+     */
+    private static function isFinished($idAuditoria)
+    {
+        $auditoria = Auditoria::find($idAuditoria);
+        if(!$auditoria) { return false;}
+
+        if($auditoria->terminada == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -38,12 +72,6 @@ class AuditoriasController extends Controller
 
        $query = Auditoria::when($user, function($ifwhere) use ($user) {
                     return $ifwhere->where('idUser', $user); })
-
-                    ->when($terminada, function($ifwhere) use ($terminada) {
-                        return $ifwhere->where('terminada', $terminada); })
-                    ->when($guardada, function($ifwhere) {
-                        return $ifwhere->whereNotNull('fechaGuardada'); })
-
                     ->when($status, function($filterstatus) use ($status){
                         switch ($status) {
                             case 1:
@@ -124,8 +152,13 @@ class AuditoriasController extends Controller
     public function show(Request $request, $id)
     {
         AuthController::validateCredentials($request);
-//        Auditoria::find
 
+        $query = Auditoria::find($id);
+        if($query) {
+            return self::queryOk($query);
+        } else {
+            return self::warningEntryNoExist();
+        }
     }
 
     /**
@@ -159,17 +192,34 @@ class AuditoriasController extends Controller
             return self::warningEntryNoExist();
         }
 
-        /** Verifiacion de existencia de los campos que se actualizaran */
-        if(!($terminada || $fechaGuardada)) {
-            return self::warningNoParameters();
+        /** Si la auditoria ya fue marcada como guardada, no se permite su edicion */
+        if(self::isSaved($id)) {
+            return self::warningAuditoriaGuardada();
         }
 
-        /** Actualizacion de solo los campos especificados por los parametros proporcionados */
-        if($terminada) {
-            $editAuditoria->terminada = 1;
+        /** Verifiacion de existencia de los campos que se actualizaran */
+        if( is_null($terminada) && is_null($fechaGuardada) ) {
+            return self::warningNoParameters();
         }
+        
+        $auditoriaTerminada = self::isFinished($id);
+
+        /** Actualizacion de solo los campos especificados por los parametros proporcionados */
+        if($terminada == 0 && !is_null($terminada)) {
+            $editAuditoria->terminada = 0;
+            $auditoriaTerminada = false;
+        }
+        if($terminada >= 1 || $terminada === 'true') {
+            $editAuditoria->terminada = 1;
+            $auditoriaTerminada = true;
+        }
+        
         if($fechaGuardada) {
-            $editAuditoria->fechaGuardada = DB::raw('now()');
+            if($auditoriaTerminada) {
+                $editAuditoria->fechaGuardada = DB::raw('now()');
+            } else {
+                return self::warningAuditoriaNoTerminada();
+            }
         }
 
         /** Guardado con comprobacion de éxito */
