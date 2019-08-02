@@ -138,7 +138,6 @@ Crea una nueva auditoria según los parámetros obligatorios soliciados.
 ### Descripcion:
 Crea una nueva auditoria.
 ### Parametros:
-+ **user**(*numerico*): id del usuario que crea la auditoria.
 + **descripcion**(*string*): Texto que describa a la nueva auditoria, como un nombre o razon por la que se realiza.
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
