@@ -13,6 +13,7 @@ class AuthController extends Controller
     private static $key = 'EW-LTW2%YSzQ#Knf+P*FnYnh&9rKt77X9';
     #private static $token_expire_delay = 'P10D'; //tiempo que durará valido el token a partir de su creacion
     private static $token_expire_delay = 'PT3H';
+    private static $encryption = ['HS256'];
 
     /**
      * Display a listing of the resource.
@@ -24,6 +25,11 @@ class AuthController extends Controller
         return $this->getToken($request->input('user'), $passwdRequested = $request->input('passwd'));        
     }
 
+    /**
+     * Verifica si el token proporcionado es valido.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public static function validateCredentials(Request $request)
     {
         try {
@@ -37,6 +43,26 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Obtiene la id del usuario a partir del token usado para la solicitud
+     *
+     * @return int
+     */
+    public static function getUserFromToken($token)
+    {
+        try {
+            $decode = JWT::decode($token, self::$key, self::$encryption);
+        } catch (\Exception $e) {
+            return 0;
+        }
+
+        if($decode) {
+            return $decode->data->id;
+        } else {
+            return 0;
+        }
+    }
+
     private static function checkToken($jwtToken)
     {
         if(empty($jwtToken)) {
@@ -44,7 +70,7 @@ class AuthController extends Controller
         }
 
         try {
-            $decode = JWT::decode($jwtToken, self::$key, array('HS256'));
+            $decode = JWT::decode($jwtToken, self::$key, self::$encryption);
         } catch (\Exception $e){
             return self::status('error', $e->getMessage());
         }

@@ -123,7 +123,7 @@ class AuditoriasController extends Controller
         AuthController::validateCredentials($request);
 
         /** Parametros necesarios para crear un nuevo registro */
-        $idUser = $request->input('user');
+        $idUser = AuthController::getUserFromToken($request->input('token'));
         $descripcion = $request->input('descripcion');
 
         /** Comprobacion de que se cumplen los parametros */
