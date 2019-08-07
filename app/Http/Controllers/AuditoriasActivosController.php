@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AuditoriasActivosController extends Controller
 {
@@ -13,7 +14,9 @@ class AuditoriasActivosController extends Controller
      */
     public function index()
     {
-        //
+        return DB::table('activosfijos as a')
+            ->leftJoin('auditorias_activofijos as aa', 'a.idActivoFijo', 'aa.idActivoFijo')
+            ->get();
     }
 
     /**

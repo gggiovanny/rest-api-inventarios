@@ -20,7 +20,7 @@ class ActivosController extends Controller
        $query = null;
 
         /** Mostrar activos sin ubicacion */
-        $mostrarSinUbicacion = $request->input('sinUbicacion') ? true : false;
+        $mostrarSinUbicacion = $request->input('sin_ubicacion') == 'false' ? null : $request->input('sin_ubicacion');
         /** Paginado */
         $page_size = $request->input('page_size') ? $request->input('page_size') : 25;
         $page = $request->input('page') ? $request->input('page') : 1;
@@ -28,6 +28,8 @@ class ActivosController extends Controller
         $idEmpresa = $request->input('empresa');
         $idDepartamento = $request->input('departamento');
         $idClasificacion = $request->input('clasificacion');
+        $conteo = $request->input('conteo');
+        if($conteo == 0 && !is_null($conteo)) { $conteo = -1; } // Se pone en -1 porque 0 se toma como null en el when
         /** Busqueda */
         $search = $request->input('search');
         /** Ordenamiento */
@@ -37,7 +39,15 @@ class ActivosController extends Controller
         if($mostrarSinUbicacion)
         {
             $query = Activo::leftJoin('movimiento_detalle AS MVD', 'activosfijos.idActivoFijo', 'MVD.idActivoFijo')
-                        ->select('activosfijos.idActivoFijo', 'activosfijos.descripcion', 'activosfijos.idClasificacion')
+                        ->leftJoin('auditorias_activofijos as AUA', 'activosfijos.idActivoFijo', 'AUA.idActivoFijo')
+                        ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
+                        ->select(   'activosfijos.idActivoFijo'
+                                    ,'activosfijos.descripcion'
+                                    ,'AUA.conteo'
+                                    ,'AU.fechaGuardada AS fecha_conteo'
+	                                ,'AUA.idAuditoria as id_auditoria_conteo'
+                                    ,'activosfijos.idClasificacion'
+                                )
                         ->whereNull('MVD.idMovimientoDetalle')
                         ->when($idClasificacion, function($ifwhere) use ($idClasificacion) {
                             return $ifwhere->where('ACT.idClasificacion', $idClasificacion); })
@@ -57,9 +67,17 @@ class ActivosController extends Controller
                         ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
                         ->join('departamentos AS DEP', 'MV.destino', 'DEP.idDepartamento')
                         ->join('empresas AS EMP', 'DEP.idEmpresa', 'EMP.idEmpresa')
-                        ->select(   'MVD.idActivoFijo',
-                                    'ACT.descripcion',
-                                    'ACT.idClasificacion'
+                        ->leftJoin('auditorias_activofijos as AUA', 'MVD.idActivoFijo', 'AUA.idActivoFijo')
+                        ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
+                        ->select(   'MVD.idActivoFijo'
+                                    ,'ACT.descripcion'
+                                    ,'AUA.conteo'
+                                    ,'AU.fechaGuardada AS fecha_conteo'
+	                                ,'AUA.idAuditoria as id_auditoria_conteo'
+                                    ,'ACT.idClasificacion'
+                                    ,'DEP.idDepartamento'
+                                    ,'EMP.idEmpresa'
+                                    ,'MV.fecha_acepta AS ultimo_movimiento'	
                                 )
                         ->whereRaw('MV.fecha_acepta =	(
                             select MAX(m.fecha_acepta)
@@ -68,6 +86,25 @@ class ActivosController extends Controller
                                 on m.idMovimiento = md.idMovimiento
                             where md.idActivoFijo = MVD.idActivoFijo
                             )')
+                        ->whereRaw('(
+                            CASE
+                                WHEN (	select count(*)
+                                        from auditorias_activofijos aa
+                                        inner join auditorias a
+                                            on aa.idAuditoria = a.idAuditoria
+                                        where a.fechaGuardada is not null
+                                        and aa.idActivoFijo = MVD.idActivoFijo ) >= 1
+                                THEN AU.fechaGuardada =	(
+                                                        select MAX(a.fechaGuardada)
+                                                        from auditorias_activofijos aa
+                                                        inner join auditorias a
+                                                            on aa.idAuditoria = a.idAuditoria
+                                                        where aa.idActivoFijo = MVD.idActivoFijo
+                    
+                                                        )
+                                ELSE AU.fechaGuardada is null								
+                            END			
+                        ) ')
                         ->when($idEmpresa, function($ifwhere) use ($idEmpresa) {
                             return $ifwhere->where('EMP.idEmpresa', $idEmpresa); })
                         ->when($idDepartamento, function($ifwhere) use ($idDepartamento) {
@@ -76,6 +113,13 @@ class ActivosController extends Controller
                             return $ifwhere->where('ACT.idClasificacion', $idClasificacion); })
                         ->when($search, function($ifwhere) use ($search) {
                             return $ifwhere->where('ACT.descripcion', 'like', '%'.$search.'%'); })
+                        ->when($conteo, function($ifwhere) use ($conteo) {
+                            if($conteo == -1) {
+                                return $ifwhere->whereNull('AUA.conteo'); 
+                            } else {
+                                return $ifwhere->whereNotNull('AUA.conteo'); 
+                            }
+                        })
                         
                         ->orderBy($sort_by, $sort_order)
                         ->skip(($page-1)*$page_size)
@@ -84,7 +128,26 @@ class ActivosController extends Controller
                         ;
         }
 
-        return self::queryOk($query);
+        $filtered = $query->filter(function ($registro) {
+            if(!$registro->conteo) {
+                unset($registro->conteo);
+                unset($registro->fecha_conteo);
+                unset($registro->id_auditoria_conteo);
+            }
+            
+            /*
+            foreach ($registro as &$column) {
+                if(!$column) {
+                    unset($column);
+                }
+            }
+            */
+            return true;
+        });
+        return $filtered;
+        
+
+       // return self::queryOk($query);
     }
 
     /**
