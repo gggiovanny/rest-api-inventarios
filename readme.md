@@ -74,7 +74,7 @@ Regresa un listado de los activos filtrado según los parámetros proporcionados
 + **sort_by**(*string*): indica el nombre del campo que se usará para ordenar el listado de resultados.
 + **sort_order**(*(asc/desc)*):  indica si el ordenamiento será ascendente o descendiente.
 + **search**(*string*): lista unicamente los activos cuya descripcion coincida con la cadena de búsqueda.
-+ **sinUbicacion**(*booleano*): si vale 1, lista únicamente los activos que aún no tienen una ubicación establecida.
++ **sin_ubicacion**(*booleano*): si vale 1, lista únicamente los activos que aún no tienen una ubicación establecida.
 + **empresa**(*numerico*): listar activos unicamente del id de la empresa indicada.
 + **departamento**(*numerico*): listar activos unicamente del id del departamento indicado.
 + **clasificacion**(*numerico*): listar activos unicamente del id de la clasificacion indicada.
