@@ -128,26 +128,18 @@ class ActivosController extends Controller
                         ;
         }
 
-        $filtered = $query->filter(function ($registro) {
-            if(!$registro->conteo) {
+        /** Filtrado de los registros nulos y retirado de los conteos  de auditorias no guardadas */
+        $query = $query->filter(function ($registro) {
+            if(!$registro->conteo || !$registro->fecha_conteo) {
                 unset($registro->conteo);
                 unset($registro->fecha_conteo);
                 unset($registro->id_auditoria_conteo);
             }
-            
-            /*
-            foreach ($registro as &$column) {
-                if(!$column) {
-                    unset($column);
-                }
-            }
-            */
             return true;
         });
-        return $filtered;
         
 
-       // return self::queryOk($query);
+       return self::queryOk($query);
     }
 
     /**
