@@ -22,4 +22,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::apiResource('activos', 'ActivosController');
 Route::apiResource('auth', 'AuthController');
 Route::apiResource('auditorias', 'AuditoriasController');
-Route::apiResource('auditoriasactivos', 'AuditoriasActivosController');
+
+Route::get('auditorias/{id_auditoria}/activos', 'AuditoriasActivosController@index');
+Route::get('auditorias/{id_auditoria}/activos/{id_activo}', 'AuditoriasActivosController@show');
+Route::post('auditorias/{id_auditoria}/activos/{id_activo}', 'AuditoriasActivosController@store');
+Route::put('auditorias/{id_auditoria}/activos/{id_activo}', 'AuditoriasActivosController@update');

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Symfony\Component\HttpFoundation\Response;
 
 class Controller extends BaseController
 {
@@ -70,6 +71,9 @@ class Controller extends BaseController
         return Response($return, 400);
     }
 
+    public static $msgAuditoriaTerminadaRegistro = 'No se pueden agregar activos a una auditoria marcada como terminada.';
+    public static $msgAuditoriaGuardada = 'No se puede editar una auditoria marcada como guardada.';
+
     public static function warningAuditoriaNoTerminada()
     {
         $return = AuthController::status('warning', 'No se puede marcar como guardada una auditoria no terminada.');
@@ -81,7 +85,8 @@ class Controller extends BaseController
         $return = AuthController::status('warning', 'Sin cambios!');
         return Response($return, 400);
     }
-    
 
-    
+    public static function errorExit($msg) {
+        exit(response()->json(self::status('error', $msg))->content());
+    }
 }

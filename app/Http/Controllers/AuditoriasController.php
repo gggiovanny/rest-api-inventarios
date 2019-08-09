@@ -9,6 +9,21 @@ use Illuminate\Support\Facades\DB;
 class AuditoriasController extends Controller
 {
     /**
+     * Interrumpe la peticion si la auditoria
+     * está marcada como guardada o terminada
+     */
+    public static function validateAuditoriaStatus($idAuditoria)
+    {
+        if(self::isSaved($idAuditoria)) {
+            self::errorExit(self::$msgAuditoriaGuardada);
+        }
+        if(self::isFinished($idAuditoria)) {
+            self::errorExit(self::$msgAuditoriaTerminadaRegistro);
+        }
+    }
+
+
+    /**
      * Checa si la auditoria con la id proporcionada
      * está marcada como guardada.
      * @return boolean
@@ -127,7 +142,7 @@ class AuditoriasController extends Controller
         $descripcion = $request->input('descripcion');
 
         /** Comprobacion de que se cumplen los parametros */
-        if(!($descripcion && $idUser)) {
+        if(!$descripcion) {
             return self::warningNoParameters();
         }
 
