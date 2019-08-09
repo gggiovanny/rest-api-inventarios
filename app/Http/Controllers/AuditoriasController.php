@@ -67,7 +67,7 @@ class AuditoriasController extends Controller
        AuthController::validateCredentials($request);
 
        /** Paginado */
-       $page_size = $request->input('page_size') ? $request->input('page_size') : 25;
+       $page_size = $request->input('page_size') ? $request->input('page_size') : self::$PAGE_SIZE_DEFAULT;
        $page = $request->input('page') ? $request->input('page') : 1;
        /** Filtros */
        $user = $request->input('user');
@@ -112,8 +112,7 @@ class AuditoriasController extends Controller
                     ->orderBy($sort_by, $sort_order)
                         ->skip(($page-1)*$page_size)
                         ->take($page_size)
-                        ->get()
-                    ;
+                        ->get();
         return self::queryOk($query);
     }
 
@@ -141,15 +140,12 @@ class AuditoriasController extends Controller
         $idUser = AuthController::getUserFromToken($request->input('token'));
         $descripcion = $request->input('descripcion');
 
-        /** Comprobacion de que se cumplen los parametros */
-        if(!$descripcion) {
-            return self::warningNoParameters();
-        }
-
         $newAuditoria = new Auditoria;
 
         $newAuditoria->idUser = $idUser;
-        $newAuditoria->descripcion = $descripcion;
+        if($descripcion) {
+            $newAuditoria->descripcion = $descripcion;
+        }
 
         if($newAuditoria->save()) {
             return self::querySaved();
@@ -200,6 +196,7 @@ class AuditoriasController extends Controller
 
         $terminada = $request->input('terminada');
         $fechaGuardada = $request->input('guardada');
+        $descripcion = $request->input('descripcion');
 
         /** Verificacion de que existe la auditoria solicitada */
         $editAuditoria = Auditoria::find($id);
@@ -213,7 +210,7 @@ class AuditoriasController extends Controller
         }
 
         /** Verifiacion de existencia de los campos que se actualizaran */
-        if( is_null($terminada) && is_null($fechaGuardada) ) {
+        if( is_null($terminada) && is_null($fechaGuardada && is_null($descripcion)) ) {
             return self::warningNoParameters();
         }
         
@@ -235,6 +232,10 @@ class AuditoriasController extends Controller
             } else {
                 return self::warningAuditoriaNoTerminada();
             }
+        }
+
+        if($descripcion) {
+            $editAuditoria->descripcion = $descripcion;
         }
 
         /** Guardado con comprobacion de éxito */

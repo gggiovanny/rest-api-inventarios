@@ -12,6 +12,8 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    public static $PAGE_SIZE_DEFAULT = 25;
+
     public static function status($status, $description) {
         return array(
             'status' => $status,

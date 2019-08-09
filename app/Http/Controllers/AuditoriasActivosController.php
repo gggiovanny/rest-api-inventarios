@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\AuditoriaActivo;
+use App\Models\AuditoriasActivos;
 use App\Models\Auditoria;
 use App\Models\Activo;
 
@@ -16,16 +16,42 @@ class AuditoriasActivosController extends Controller
     public function index($id_auditoria, Request $request)
     {
         AuthController::validateCredentials($request);
-
         /** Filtro para mostrar todas los registros auditorias indistintamente */
         $all = $request->input('all') == 'false' ? null : $request->input('all');
+        /** Filtros */
+        $user = $request->input('user');
+        $activo = $request->input('activo');
+
+        /** Paginado */
+        $page_size = $request->input('page_size') ? $request->input('page_size') : self::$PAGE_SIZE_DEFAULT;
+        $page = $request->input('page') ? $request->input('page') : 1;
+        /** Ordenamiento */
+        $sort_by = $request->input('sort_by') ? $request->input('sort_by') : 'idAuditoria';
+        $sort_order = $request->input('sort_order') ? $request->input('sort_order') : 'asc';
 
         if($all) {
-            $query = AuditoriaActivo::all();
+            $query = AuditoriasActivos::select()
+                ->when($user, function($ifwhere) use ($user) {
+                    return $ifwhere->where('idUser', $user); })
+                ->when($activo, function($ifwhere) use ($activo) {
+                    return $ifwhere->where('idActivoFijo', $activo); })
+
+                ->orderBy($sort_by, $sort_order)
+                        ->skip(($page-1)*$page_size)
+                        ->take($page_size)
+                        ->get();
         } else {
-            $query = AuditoriaActivo::select()
+            $query = AuditoriasActivos::select()
                 ->where('idAuditoria', $id_auditoria)
-                ->get();
+                ->when($user, function($ifwhere) use ($user) {
+                    return $ifwhere->where('idUser', $user); })
+                ->when($activo, function($ifwhere) use ($activo) {
+                    return $ifwhere->where('idActivoFijo', $activo); })
+
+                ->orderBy($sort_by, $sort_order)
+                        ->skip(($page-1)*$page_size)
+                        ->take($page_size)
+                        ->get();
         }
 
         return self::queryOk($query);
@@ -50,7 +76,7 @@ class AuditoriasActivosController extends Controller
      */
     private static function alreadyExists($idActivoFijo, $idAuditoria)
     {
-        if(is_null($audact = AuditoriaActivo::where('idActivofijo', $idActivoFijo)->where('idAuditoria', $idAuditoria)->first())) {
+        if(is_null($audact = AuditoriasActivos::where('idActivofijo', $idActivoFijo)->where('idAuditoria', $idAuditoria)->first())) {
             return false;
         } else {
             return true;
@@ -89,7 +115,7 @@ class AuditoriasActivosController extends Controller
             return $this->update($idAuditoria, $id_activo, $request);
         }
 
-        $new = new AuditoriaActivo();
+        $new = new AuditoriasActivos();
         
         $new->idAuditoria = $idAuditoria;
         $new->idUser = $idUser;
@@ -113,7 +139,7 @@ class AuditoriasActivosController extends Controller
     {
         AuthController::validateCredentials($request);
 
-        $query = AuditoriaActivo::select()
+        $query = AuditoriasActivos::select()
                 ->where('idAuditoria', $id_auditoria)
                 ->where('idActivoFijo', $id_activo)
                 ->get();
@@ -159,7 +185,7 @@ class AuditoriasActivosController extends Controller
         }
 
 
-        $update = AuditoriaActivo::where('idActivofijo', $id_activo)->where('idAuditoria', $idAuditoria)->first();
+        $update = AuditoriasActivos::where('idActivofijo', $id_activo)->where('idAuditoria', $idAuditoria)->first();
 
         if(is_null($update)) {
             return self::warningEntryNoExist();
