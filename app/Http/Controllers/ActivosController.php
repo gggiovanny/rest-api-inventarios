@@ -22,14 +22,14 @@ class ActivosController extends Controller
         /** Mostrar activos sin ubicacion */
         $mostrarSinUbicacion = $request->input('sin_ubicacion') == 'false' ? null : $request->input('sin_ubicacion');
         /** Paginado */
-        $page_size = $request->input('page_size') ? $request->input('page_size') : 25;
+        $page_size = $request->input('page_size') ? $request->input('page_size') : self::$PAGE_SIZE_DEFAULT;
         $page = $request->input('page') ? $request->input('page') : 1;
         /** Filtros */         
         $idEmpresa = $request->input('empresa');
         $idDepartamento = $request->input('departamento');
         $idClasificacion = $request->input('clasificacion');
         $conteo = $request->input('conteo');
-        if($conteo == 0 && !is_null($conteo)) { $conteo = -1; } // Se pone en -1 porque 0 se toma como null en el when
+        if(($conteo === '0' || $conteo === 'false' ) && !is_null($conteo)) { $conteo = -1; } // Se pone en -1 porque 0 se toma como null en el when
         /** Busqueda */
         $search = $request->input('search');
         /** Ordenamiento */
