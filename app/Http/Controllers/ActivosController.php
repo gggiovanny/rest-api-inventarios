@@ -117,7 +117,7 @@ class ActivosController extends Controller
                             if($conteo == -1) {
                                 return $ifwhere->whereNull('AUA.conteo'); 
                             } else {
-                                return $ifwhere->whereNotNull('AUA.conteo'); 
+                                return $ifwhere->whereNotNull('AUA.conteo')->whereNotNull('AU.fechaGuardada'); 
                             }
                         })
                         
