@@ -44,14 +44,15 @@ y cuando son peticiones que regresan listados, estos se anexan como *list* a la 
             "descripcion": "Hp 245 G5 AMD A8-7410",
             "clas": 1
         },
-        ...
+        {
+            "..."
+        },
     ]
 }
 ```
 Link base de la api: http://grupodicas.com.mx/activosfijos/api/
 
-# Endpoint
-GET|HEAD :  api/auth
+# Endpoint: GET|HEAD :  api/auth
 ### Descripcion:
 Proporciona un token de acceso a la api cuando el usuario y contraseña proporcionaos son válidos.
 ### Parametros
@@ -64,8 +65,7 @@ Proporciona un token de acceso a la api cuando el usuario y contraseña proporci
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/auth?user=jperez&passwd=123456
 
-# Endpoint
-GET|HEAD :  api/activos
+# Endpoint: GET|HEAD :  api/activos
 ### Descripcion:
 Regresa un listado de los activos filtrado según los parámetros proporcionados.
 ### Parametros:
@@ -78,20 +78,30 @@ Regresa un listado de los activos filtrado según los parámetros proporcionados
 + **empresa**(*numerico*): listar activos unicamente del id de la empresa indicada.
 + **departamento**(*numerico*): listar activos unicamente del id del departamento indicado.
 + **clasificacion**(*numerico*): listar activos unicamente del id de la clasificacion indicada.
++ **clasificacion**(*numerico*): listar activos unicamente del id de la clasificacion indicada.
++ **auditoria_actual**(*numerico*): Este parámetro se utiliza cuando se listan activos para una auditoria en particular. Segun la ID de auditoria proporcionada, se mostrará un campo llamado *conteo_actual* donde figurará el conteo de cada activo en la auditoria indicada, independientemente si la auditoria está marcada como guardada o no.
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
++ + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
++ **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 + **list**(*array*):
-   + id
-   + description
-   + ... `anexar los que faltan`
+  + **idActivoFijo**(*int*): Identificador del activo fijo.
+  + **descripcion**(*string*): Nombre o descripción del activo.
+  + **conteo_guardado**(*int*): El último conteo hecho en una auditoria marcado como guardado del activo en cuestión. Si no existe conteo para dicho activo, este campo será *null* y no figurará en el los campos del activo.
+  + **conteo_actual**(*int*): Segun la ID de auditoria proporcionada en el parámetro *auditoria_actual*, se mostrará en este campo el conteo de cada activo en la auditoria indicada, independientemente si la auditoria está marcada como guardada o no.
+  + **fecha_conteo**(*datetime*): fecha en la que se realizo el conteo.
+  + **id_auditoria_conteo**(*int*): ID de la auditoria en la que se hizo el conteo del activo.
+  + **idClasificacion**(*int*): ID de la clasificación del activo.
+  + **idDepartamento**(*int*): ID del departamento en el que se ubica actualmente el activo.
+  + **idEmpresa**(*int*): ID de la empresa en el que se ubica actualmente el activo.
+  + **ultimo_movimiento**(*datetime*): fecha en la que se estableció la ubicación actual del activo.
 
 
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/activos?departamento=152&clasificacion=13&page_size=15&page=1&search=pascar
 
-# Endpoint
-GET|HEAD :  api/activos/{activo}
+# Endpoint: GET|HEAD :  api/activos/{activo}
 ### Descripcion:
 Regresa el activo que corresponda a la id especificada en {activo}.      
 ### Parametros:
@@ -99,12 +109,16 @@ Ninguno.
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
-+ **list**(*array*): ... `anexar los que faltan`
++ **list**(*array*):
+    + **idActivoFijo**(*int*): Identificador del activo fijo.
+    + **descripcion**(*string*): Nombre o descripción del activo.
+    + **idClasificacion**(*int*): ID de la clasificación del activo.
+    + **referencia**(*string*)
+    + **estatus**(*bool*): Si vale 1, el activo está de baja, por lo que no figurará en el listado general.
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/activos/49
 
-# Endpoint
-GET|HEAD :  api/auditorias
+# Endpoint: GET|HEAD :  api/auditorias
 ### Descripcion:
 Regresa un listado de las auditorias según las condiciones establecidas en los parámetros.
 ### Parametros:
@@ -131,8 +145,7 @@ Regresa un listado de las auditorias según las condiciones establecidas en los 
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/auditorias?user=17&status=1&page_size=10&page=1
 
-# Endpoint
-POST     :  api/auditorias
+# Endpoint: POST     :  api/auditorias
 ### Descripcion:
 Crea una nueva auditoria según los parámetros obligatorios soliciados.
 ### Descripcion:
@@ -145,8 +158,7 @@ Crea una nueva auditoria.
 ### Petición de ejemplo
 http://localhost/api/auditorias?user=17&descripcion=Verificacion%20de%20activos%20de%20TI
 
-# Endpoint
-GET|HEAD :  api/auditorias/{auditoria}
+# Endpoint: GET|HEAD :  api/auditorias/{auditoria}
 ### Descripcion:
 Regresa únicamente la auditoria que corresponda a la id proporcionada en {auditoria}.
 ### Parametros:
@@ -164,8 +176,7 @@ Ninguno
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/auditorias/2
 
-# Endpoint
-PUT|PATCH:  api/auditorias/{auditoria}
+# Endpoint: PUT|PATCH:  api/auditorias/{auditoria}
 ### Descripcion:
 Permite actualizar el status de la auditoria que corresponde a la id proporcionada en {auditoria}.
 ### Parametros:
@@ -175,4 +186,61 @@ Permite actualizar el status de la auditoria que corresponde a la id proporciona
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 ### Petición de ejemplo
-http://grupodicas.com.mx/activosfijos/api/auditorias/2?terminada=1               
+http://grupodicas.com.mx/activosfijos/api/auditorias/2?terminada=1
+
+# Endpoint: GET|HEAD:  api/auditorias/{id_auditoria}/activos
+### Descripcion:
+Regresa un listado de los activos contabilizados en la auditoria indicada en *{id_auditoria}*.
+### Parametros:
++ **all**(*booleano*): Si vale `true` o `1`, muestra todos los activos contabilizados en auditorias indistintamente de a que auditoria pertenezca.
++ **user**(*int*): Dada la ID de usuario proporcionada, mostrará solo los activos contabilizados por el usuario proporcionado. Es más útil cuando se combina con el parametro *all*.
++ **activo**(*int*): Dada la ID del activo proporcionada, mostrará solo los activos contabilizados que coincidan con la ID proporcionada. Es útil cuando se combina con el parametro *all*.
+### Respuesta
++ **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
++ **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
++ **list**(*array*):
+  + **idAuditoria**(*int*): ID de la auditoria a la que pertenece el conteo.
+  + **idActivoFijo**(*int*): ID del activo contabilizado.
+  + **idUser**(*int*): ID del usuario que realizó dicho conteo.
+  + **conteo**(*int*): Conteo del activo.
+### Petición de ejemplo
+http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos?user=17
+
+
+# Endpoint: POST:  api/auditorias/{id_auditoria}/activos/{id_activo}
+### Descripcion:
+Permite guardar un conteo de un activo. Si se llama de nuevo con la misma combinación de *{id_auditoria}* y *{id_activo}*, no se guardará una nueva entrada, si no que se actualizará la existente.
+### Parametros:
++ **conteo**(*int*): `Obligatorio`. A través de este parámetro se indica la cantidad contabilizada del activo con la id indicada en *{id_activo}* que a su vez pertenece a la auditoria indicada en {id_auditoria}.
+### Respuesta
++ **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
++ **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
+### Petición de ejemplo
+http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/12?conteo=7
+
+# Endpoint: GET|HEAD:  api/auditorias/{id_auditoria}/activos/{id_activo}
+### Descripcion:
+Regresa el activo contabilizado indicado en *{id_activo}* perteneciente a la auditoria indicada en *{id_auditoria}*.
+### Parametros:
+Ninguno.
+### Respuesta
++ **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
++ **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
++ **list**(*array*):
+  + **idAuditoria**(*int*): ID de la auditoria a la que pertenece el conteo.
+  + **idActivoFijo**(*int*): ID del activo contabilizado.
+  + **idUser**(*int*): ID del usuario que realizó dicho conteo.
+  + **conteo**(*int*): Conteo del activo.
+### Petición de ejemplo
+http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/54
+
+# Endpoint: PUT:  api/auditorias/{id_auditoria}/activos/{id_activo}
+### Descripcion:
+Permite actualizar el conteo de un activo.
+### Parametros:
++ **conteo**(*int*): `Obligatorio`. A través de este parámetro se indica la cantidad contabilizada del activo con la id indicada en *{id_activo}* que a su vez pertenece a la auditoria indicada en {id_auditoria}.
+### Respuesta
++ **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
++ **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
+### Petición de ejemplo
+http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/54?conteo=11
