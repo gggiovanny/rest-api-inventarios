@@ -118,8 +118,8 @@ class AuditoriasActivosController extends Controller
         $new = new AuditoriasActivos();
         
         $new->idAuditoria = $idAuditoria;
-        $new->idUser = $idUser;
         $new->idActivoFijo = $id_activo;
+        $new->idUser = $idUser;
         $new->conteo = $conteo;
 
         if($new->save()) {
