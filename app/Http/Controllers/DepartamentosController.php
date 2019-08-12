@@ -27,7 +27,7 @@ class DepartamentosController extends Controller
         $query = Departamento::select()
                 ->where('estatus', '1')
                 ->when($search, function($ifwhere) use ($search) {
-                    return $ifwhere->where('departamentos.descripcion', 'like', '%'.$search.'%'); })
+                    return $ifwhere->where('departamentos.descripcion', 'like', '%'.$search.'%')->orWhere('departamentos.nombre', 'like', '%'.$search.'%'); })
 
                 ->orderBy($sort_by, $sort_order)
                         ->skip(($page-1)*$page_size)
