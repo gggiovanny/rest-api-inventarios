@@ -27,7 +27,7 @@ class EmpresasController extends Controller
         $query = Empresa::select()
                 ->where('estatus', '1')
                 ->when($search, function($ifwhere) use ($search) {
-                    return $ifwhere->where('empresas.descripcion', 'like', '%'.$search.'%'); })
+                    return $ifwhere->where('empresas.descripcion', 'like', '%'.$search.'%')->orWhere('empresas.nombre', 'like', '%'.$search.'%'); })
 
                 ->orderBy($sort_by, $sort_order)
                         ->skip(($page-1)*$page_size)
