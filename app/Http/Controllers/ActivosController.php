@@ -21,6 +21,8 @@ class ActivosController extends Controller
 
         /** Mostrar activos sin ubicacion */
         $mostrarSinUbicacion = $request->input('sin_ubicacion') == 'false' ? null : $request->input('sin_ubicacion');
+        /** Mostrar valor guardado en auditoria actual */
+        $auditoria_actual = $request->input('auditoria_actual') ? $request->input('auditoria_actual') : '0';
         /** Paginado */
         $page_size = $request->input('page_size') ? $request->input('page_size') : self::$PAGE_SIZE_DEFAULT;
         $page = $request->input('page') ? $request->input('page') : 1;
@@ -43,11 +45,13 @@ class ActivosController extends Controller
                         ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
                         ->select(   'activosfijos.idActivoFijo'
                                     ,'activosfijos.descripcion'
-                                    ,'AUA.conteo'
+                                    ,'AUA.conteo AS conteo_guardado'
+                                    ,DB::raw('(select conteo from auditorias_activofijos where idAuditoria = '.$auditoria_actual.' and idActivoFijo = activosfijos.idActivoFijo) as conteo_actual')
                                     ,'AU.fechaGuardada AS fecha_conteo'
 	                                ,'AUA.idAuditoria as id_auditoria_conteo'
                                     ,'activosfijos.idClasificacion'
                                 )
+                        ->where('activosfijos.estatus', 'false')
                         ->whereNull('MVD.idMovimientoDetalle')
                         ->when($idClasificacion, function($ifwhere) use ($idClasificacion) {
                             return $ifwhere->where('ACT.idClasificacion', $idClasificacion); })
@@ -71,14 +75,17 @@ class ActivosController extends Controller
                         ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
                         ->select(   'MVD.idActivoFijo'
                                     ,'ACT.descripcion'
-                                    ,'AUA.conteo'
+                                    ,'AUA.conteo AS conteo_guardado'
+                                    ,DB::raw('(select conteo from auditorias_activofijos where idAuditoria = '.$auditoria_actual.' and idActivoFijo = MVD.idActivoFijo) as "conteo_actual"')
                                     ,'AU.fechaGuardada AS fecha_conteo'
-	                                ,'AUA.idAuditoria as id_auditoria_conteo'
+                                    ,'AUA.idAuditoria as id_auditoria_conteo'
+                                    ,'AU.idUser AS auditoria_autor'
                                     ,'ACT.idClasificacion'
                                     ,'DEP.idDepartamento'
                                     ,'EMP.idEmpresa'
                                     ,'MV.fecha_acepta AS ultimo_movimiento'	
                                 )
+                        ->where('ACT.estatus', 'false')
                         ->whereRaw('MV.fecha_acepta =	(
                             select MAX(m.fecha_acepta)
                             from movimientos m
@@ -130,11 +137,17 @@ class ActivosController extends Controller
 
         /** Filtrado de los registros nulos y retirado de los conteos  de auditorias no guardadas */
         $query = $query->filter(function ($registro) {
-            if(!$registro->conteo || !$registro->fecha_conteo) {
-                unset($registro->conteo);
+            if(!$registro->conteo_guardado || !$registro->fecha_conteo) {
+                unset($registro->conteo_guardado);
                 unset($registro->fecha_conteo);
                 unset($registro->id_auditoria_conteo);
+                unset($registro->auditoria_autor);
             }
+
+            if(!$registro->conteo_actual) {
+                unset($registro->conteo_actual);
+            }
+
             return true;
         });
         
@@ -172,7 +185,11 @@ class ActivosController extends Controller
     public function show($id, Request $request)
     {
         AuthController::validateCredentials($request);
-        return self::queryOk(Activo::find($id));
+        $query = Activo::select()
+                ->get()
+                ->find($id);
+
+        return self::queryOk($query);
     }
 
     /**
