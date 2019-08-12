@@ -244,3 +244,38 @@ Permite actualizar el conteo de un activo.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/54?conteo=11
+
+# Endpoint: GET:  api/empresas 
+### Descripcion:
+Regresa el listado de las empresas según los parametros ingresados. Por defecto, regresa todas ordenadas por su *id*.
+### Parametros:
++ **page_size**(*numerico*): el numero de registros que se listan por página. Por defecto se listan 25.
++ **page**(*numerico*): la página actual. Por defecto es la 1.
++ **sort_by**(*string*): indica el nombre del campo que se usará para ordenar el listado de resultados.
++ **sort_order**(*(asc/desc)*):  indica si el ordenamiento será ascendente o descendiente.
++ **search**(*string*): lista unicamente los activos cuya descripcion coincida con la cadena de búsqueda.
+### Respuesta
++ **idEmpresa**(*int*): ID de la empresa.
++ **nombre**(*string*): Nombre de la empresa.
++ **descripcion**(*string*): Descripción de la empresa.
++ **estatus**(*bool*): cuando vale `0` la empresa esta de baja.
+### Petición de ejemplo
+http://grupodicas.com.mx/activosfijos/api/empresas/?search=cancun
+
+# Endpoint: GET:  api/departamentos 
+### Descripcion:
+Regresa el listado de los departamentos según los parametros ingresados. Por defecto, regresa todos ordenadas por su *id*.
+### Parametros:
++ **page_size**(*numerico*): el numero de registros que se listan por página. Por defecto se listan 25.
++ **page**(*numerico*): la página actual. Por defecto es la 1.
++ **sort_by**(*string*): indica el nombre del campo que se usará para ordenar el listado de resultados.
++ **sort_order**(*(asc/desc)*):  indica si el ordenamiento será ascendente o descendiente.
++ **search**(*string*): lista unicamente los activos cuya descripcion coincida con la cadena de búsqueda.
+### Respuesta
++ **idDepartamento**(*int*): ID del departamento.
++ **idEmpresa**(*int*): ID de la empresa a la que pertenece el departamento.
++ **nombre**(*string*): Nombre del departamento.
++ **descripcion**(*string*): Descripción del departamento.
++ **estatus**(*bool*): cuando vale `0` el departamento esta de baja.
+### Petición de ejemplo
+http://grupodicas.com.mx/activosfijos/api/departamentos?search=itpe
