@@ -61,6 +61,7 @@ Proporciona un token de acceso a la api cuando el usuario y contraseña proporci
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
++ **username**(*string*): Nombre de usuario de la persona que inició sesión.
 + **token**(*string*): Llave alfanumerica que identifica al usuario y le permite realizar peticiones a la API.
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/auth?user=jperez&passwd=123456
@@ -82,8 +83,6 @@ Regresa un listado de los activos filtrado según los parámetros proporcionados
 + **auditoria_actual**(*numerico*): Este parámetro se utiliza cuando se listan activos para una auditoria en particular. Segun la ID de auditoria proporcionada, se mostrará un campo llamado *conteo_actual* donde figurará el conteo de cada activo en la auditoria indicada, independientemente si la auditoria está marcada como guardada o no.
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
-+ **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
-+ + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 + **list**(*array*):
   + **idActivoFijo**(*int*): Identificador del activo fijo.
@@ -137,9 +136,13 @@ Regresa un listado de las auditorias según las condiciones establecidas en los 
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 + **list**(*array*):
   + **idAuditoria**(*int*):  Numero único que identifica a la auditoria.
-  + **idUser**(*int*): Numero único que identifica al usuario que creó la auditoria.
-  + **descripcion**(*string*): Texto que describe a la auditoria, como un nombre o razon por la que se realiza.
   + **fechaCreacion**(*datetime*): fecha de creacion de la auditoria.
+  + **descripcion**(*string*): Texto que describe a la auditoria, como un nombre o razon por la que se realiza.
+  + **status**(*string*): el status actual de la auditoria, que puede ser:
+    * *en curso*.
+    * *terminada*.
+    * *guardada* (solo entonces se puede considerar como auditoria base).
+  + **username**(*int*): Nombre de usuario de quien creó la auditoria.
   + **terminada**(*boolean*): Vale *0* si aún está en progreso y *1* si ya se fue marcada como completada.
   + **fechaGuardada**(*datetime*): Su valor será *null* mientras la auditoria no haya sido marcada como *terminada* y posteriormente marcada como *guardada*. Cuando se guarde, *fechaGuardada* almacenará la fecha de guardado y entonces la auditoria está completamente finalizada y será la auditoria base de la siguiente que se realice.
 ### Petición de ejemplo
