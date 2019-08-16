@@ -85,7 +85,24 @@ class AuditoriasController extends Controller
        $sort_order = $request->input('sort_order') ? $request->input('sort_order') : 'asc';
 
 
-       $query = Auditoria::when($user, function($ifwhere) use ($user) {
+       $query = Auditoria::join('users as u', 'auditorias.idUser', 'u.id')
+                    ->select(
+                        "idAuditoria",
+                        "fechaCreacion",
+                        DB::raw("(  CASE
+                                        WHEN terminada = 0 AND fechaGuardada is null THEN 'En curso'
+                                        WHEN terminada = 1 AND fechaGuardada is null THEN 'Terminada'
+                                        WHEN terminada = 1 AND fechaGuardada is not null THEN 'Guardada'
+                                        ELSE 0
+                                    END
+                        ) as status"),
+                        "descripcion",
+                        "username",
+                        "terminada",
+                        "fechaGuardada"
+                    )
+
+                    ->when($user, function($ifwhere) use ($user) {
                     return $ifwhere->where('idUser', $user); })
                     ->when($status, function($filterstatus) use ($status){
                         switch ($status) {
