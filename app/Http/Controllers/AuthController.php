@@ -85,12 +85,14 @@ class AuthController extends Controller
     {
         $usuario_correcto = false;
         $userID = '';
+        $userName = '';
 
         $users = User::all();
         foreach($users as $user) {
-            if($user->username === $userRequested && $user->password === md5($passwdRequested)) {
+            if(($user->username === $userRequested || $user->email === $userRequested) && $user->password === md5($passwdRequested)) {
                 $usuario_correcto = true;
                 $userID = $user->id;
+                $userName = $user->username;
                 break;
             }         
         }
@@ -109,6 +111,7 @@ class AuthController extends Controller
                 );
 
             $response = self::status('ok', 'Token sucessful generated');
+            $response +=['username' => $userName];
             $response +=['token' => JWT::encode($token, self::$key)];
 
             return $response;
