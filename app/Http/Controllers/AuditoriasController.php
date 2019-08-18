@@ -77,23 +77,29 @@ class AuditoriasController extends Controller
         * 2: terminada.
         * 3: guardada (solo entonces se puede considerar como auditoria base).
         */
-       $status = $request->input('status');
+       $status = strtolower($request->input('status'));
        /** Busqueda */
        $search = $request->input('search');
        /** Ordenamiento */
        $sort_by = $request->input('sort_by') ? $request->input('sort_by') : 'idAuditoria';
        $sort_order = $request->input('sort_order') ? $request->input('sort_order') : 'asc';
 
+       $status_catalog = [
+           1 => 'En curso',
+           2 => 'Terminada',
+           3 => 'Guardada',
+           0 => 'Cualquiera'
+       ];
 
        $query = Auditoria::join('users as u', 'auditorias.idUser', 'u.id')
                     ->select(
                         "idAuditoria",
                         "fechaCreacion",
                         DB::raw("(  CASE
-                                        WHEN terminada = 0 AND fechaGuardada is null THEN 'En curso'
-                                        WHEN terminada = 1 AND fechaGuardada is null THEN 'Terminada'
-                                        WHEN terminada = 1 AND fechaGuardada is not null THEN 'Guardada'
-                                        ELSE 0
+                                        WHEN terminada = 0 AND fechaGuardada is null THEN '$status_catalog[1]'
+                                        WHEN terminada = 1 AND fechaGuardada is null THEN '$status_catalog[2]'
+                                        WHEN terminada = 1 AND fechaGuardada is not null THEN '$status_catalog[3]'
+                                        ELSE '$status_catalog[0]'
                                     END
                         ) as status"),
                         "descripcion",
@@ -104,17 +110,17 @@ class AuditoriasController extends Controller
 
                     ->when($user, function($ifwhere) use ($user) {
                     return $ifwhere->where('idUser', $user); })
-                    ->when($status, function($filterstatus) use ($status){
+                    ->when($status, function($filterstatus) use ($status, $status_catalog){
                         switch ($status) {
-                            case 1:
+                            case 1: case strtolower($status_catalog[1]):
                                 return $filterstatus->where('terminada', false)
                                         ->whereNull('fechaGuardada');
                                 break;
-                            case 2:
+                            case 2: case strtolower($status_catalog[2]):
                                 return $filterstatus->where('terminada', true)
                                         ->whereNull('fechaGuardada');
                                 break;
-                            case 3:
+                            case 3: case strtolower($status_catalog[3]):
                                 return $filterstatus->whereNotNull('fechaGuardada');
                                 break;
                             default:
