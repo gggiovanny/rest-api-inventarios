@@ -93,7 +93,7 @@ class AuditoriasController extends Controller
 
        $query = Auditoria::join('users as u', 'auditorias.idUser', 'u.id')
                     ->select(
-                        "idAuditoria",
+                        "idAuditoria as id",
                         "fechaCreacion",
                         DB::raw("(  CASE
                                         WHEN terminada = 0 AND fechaGuardada is null THEN '$status_catalog[1]'
