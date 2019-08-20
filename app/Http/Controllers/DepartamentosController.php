@@ -15,6 +15,9 @@ class DepartamentosController extends Controller
     public function index(Request $request)
     {
         AuthController::validateCredentials($request);
+
+        /** Por empresa */
+        $idEmpresa = $request->input('empresa');
         /** Paginado */
         $page_size = $request->input('page_size') ? $request->input('page_size') : self::$PAGE_SIZE_DEFAULT;
         $page = $request->input('page') ? $request->input('page') : 1;
@@ -28,6 +31,9 @@ class DepartamentosController extends Controller
                 ->where('estatus', '1')
                 ->when($search, function($ifwhere) use ($search) {
                     return $ifwhere->where('departamentos.descripcion', 'like', '%'.$search.'%')->orWhere('departamentos.nombre', 'like', '%'.$search.'%'); })
+                ->when($idEmpresa, function($ifwhere) use ($idEmpresa) {
+                    return $ifwhere->where('departamentos.idEmpresa', $idEmpresa); })
+
 
                 ->orderBy($sort_by, $sort_order)
                         ->skip(($page-1)*$page_size)
