@@ -22,7 +22,7 @@ class DepartamentosController extends Controller
         $page_size = $request->input('page_size') ? $request->input('page_size') : self::$PAGE_SIZE_DEFAULT;
         $page = $request->input('page') ? $request->input('page') : 1;
         /** Ordenamiento */
-        $sort_by = $request->input('sort_by') ? $request->input('sort_by') : 'idDepartamento';
+        $sort_by = $request->input('sort_by') ? $request->input('sort_by') : 'nombre';
         $sort_order = $request->input('sort_order') ? $request->input('sort_order') : 'asc';
         /** Busqueda */
         $search = $request->input('search');
