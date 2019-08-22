@@ -16,7 +16,7 @@ class EmpresasController extends Controller
     {
         AuthController::validateCredentials($request);
         /** Paginado */
-        $page_size = $request->input('page_size') ? $request->input('page_size') : self::$PAGE_SIZE_DEFAULT;
+        $page_size = $request->input('page_size') ? $request->input('page_size') : 1000;
         $page = $request->input('page') ? $request->input('page') : 1;
         /** Ordenamiento */
         $sort_by = $request->input('sort_by') ? $request->input('sort_by') : 'nombre';
