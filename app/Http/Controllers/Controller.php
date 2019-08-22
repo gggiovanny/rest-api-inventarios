@@ -23,14 +23,20 @@ class Controller extends BaseController
 
     public static function queryOk($query)
     {
-        $return = AuthController::status('ok', 'Query sucessful');
+        $return = AuthController::status('ok', 'Query correcto');
         $return += ['list' => $query];
         return Response($return, 200);
     }
 
     public static function queryEmpty()
     {
-        $return = AuthController::status('ok', 'Query sucessful, but no results found!');
+        $return = AuthController::status('ok', 'Query correcto, pero sin resultados!');
+        return Response($return, 200);
+    }
+
+    public static function loginSucess()
+    {
+        $return = AuthController::status('ok', 'Inicio de sesión correcto!');
         return Response($return, 200);
     }
 
@@ -46,8 +52,6 @@ class Controller extends BaseController
 
         return Response($return, 200);
     }
-
-    
 
     public static function warningNoParameters()
     {

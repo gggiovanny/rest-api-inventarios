@@ -10,7 +10,7 @@ use Datetime, DatetimeZone, DateInterval;
 class AuthController extends Controller
 {
     private static $key = 'EW-LTW2%YSzQ#Knf+P*FnYnh&9rKt77X9';
-    private static $token_expire_delay = 'P10D'; //tiempo que durará valido el token a partir de su creacion
+    private static $token_expire_delay = 'P1D'; //tiempo que durará valido el token a partir de su creacion
     #private static $token_expire_delay = 'PT3H';
     private static $encryption = ['HS256'];
 
@@ -21,7 +21,13 @@ class AuthController extends Controller
      */
     public function index(Request $request)
     {
-        return $this->getToken($request->input('user'), $passwdRequested = $request->input('passwd'));        
+        if(is_null($request->input('check_login'))) {
+            return $this->getToken($request->input('user'), $passwdRequested = $request->input('passwd'));        
+        } else {
+            self::validateCredentials($request);
+            return self::loginSucess();
+        }
+        
     }
 
     /**
@@ -117,14 +123,14 @@ class AuthController extends Controller
             return $response;
             
         } else {
-            return self::status('error', 'Invalid credentials');
+            return self::status('error', 'Usuario o contraseña incorrecto!');
         }
     }
 
     private static function clientID()
     {
         $clientID = '';
-
+/*
         if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
             $clientID = $_SERVER['HTTP_CLIENT_IP'];
         } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -133,9 +139,9 @@ class AuthController extends Controller
             $clientID = $_SERVER['REMOTE_ADDR'];
         }
 
-        $clientID .= @$_SERVER['HTTP_USER_AGENT'];
         $clientID .= gethostname();
-
+        */
+        $clientID .= @$_SERVER['HTTP_USER_AGENT'];
         return sha1($clientID);
     }
     
