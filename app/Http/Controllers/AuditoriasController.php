@@ -233,7 +233,7 @@ class AuditoriasController extends Controller
         }
 
         /** Verifiacion de existencia de los campos que se actualizaran */
-        if( is_null($terminada) && is_null($fechaGuardada && is_null($descripcion)) ) {
+        if( is_null($terminada) && is_null($fechaGuardada) && is_null($descripcion) ) {
             return self::warningNoParameters();
         }
         

@@ -30,8 +30,8 @@ class ActivosController extends Controller
         $idEmpresa = $request->input('empresa');
         $idDepartamento = $request->input('departamento');
         $idClasificacion = $request->input('clasificacion');
-        $conteo = $request->input('conteo');
-        if(($conteo === '0' || $conteo === 'false' ) && !is_null($conteo)) { $conteo = -1; } // Se pone en -1 porque 0 se toma como null en el when
+        $existencia = $request->input('existencia');
+        if(($existencia === '0' || $existencia === 'false' ) && !is_null($existencia)) { $existencia = -1; } // Se pone en -1 porque 0 se toma como null en el when
         /** Busqueda */
         $search = $request->input('search');
         /** Ordenamiento */
@@ -45,10 +45,10 @@ class ActivosController extends Controller
                         ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
                         ->select(   'activosfijos.idActivoFijo'
                                     ,'activosfijos.descripcion'
-                                    ,'AUA.conteo AS conteo_guardado'
-                                    ,DB::raw('(select conteo from auditorias_activofijos where idAuditoria = '.$auditoria_actual.' and idActivoFijo = activosfijos.idActivoFijo) as conteo_actual')
-                                    ,'AU.fechaGuardada AS fecha_conteo'
-	                                ,'AUA.idAuditoria as id_auditoria_conteo'
+                                    ,'AUA.existencia AS existencia_guardada'
+                                    ,DB::raw('(select existencia from auditorias_activofijos where idAuditoria = '.$auditoria_actual.' and idActivoFijo = activosfijos.idActivoFijo) as existencia_actual')
+                                    ,'AU.fechaGuardada AS fecha_existencia'
+	                                ,'AUA.idAuditoria as id_auditoria_existencia'
                                     ,'activosfijos.idClasificacion'
                                 )
                         ->where('activosfijos.estatus', 'false')
@@ -75,10 +75,10 @@ class ActivosController extends Controller
                         ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
                         ->select(   'MVD.idActivoFijo'
                                     ,'ACT.descripcion'
-                                    ,'AUA.conteo AS conteo_guardado'
-                                    ,DB::raw('(select conteo from auditorias_activofijos where idAuditoria = '.$auditoria_actual.' and idActivoFijo = MVD.idActivoFijo) as "conteo_actual"')
-                                    ,'AU.fechaGuardada AS fecha_conteo'
-                                    ,'AUA.idAuditoria as id_auditoria_conteo'
+                                    ,'AUA.existencia AS existencia_guardada'
+                                    ,DB::raw('(select existencia from auditorias_activofijos where idAuditoria = '.$auditoria_actual.' and idActivoFijo = MVD.idActivoFijo) as "existencia_actual"')
+                                    ,'AU.fechaGuardada AS fecha_existencia'
+                                    ,'AUA.idAuditoria as id_auditoria_existencia'
                                     ,'AU.idUser AS auditoria_autor'
                                     ,'ACT.idClasificacion'
                                     ,'DEP.idDepartamento'
@@ -120,11 +120,11 @@ class ActivosController extends Controller
                             return $ifwhere->where('ACT.idClasificacion', $idClasificacion); })
                         ->when($search, function($ifwhere) use ($search) {
                             return $ifwhere->where('ACT.descripcion', 'like', '%'.$search.'%'); })
-                        ->when($conteo, function($ifwhere) use ($conteo) {
-                            if($conteo == -1) {
-                                return $ifwhere->whereNull('AUA.conteo'); 
+                        ->when($existencia, function($ifwhere) use ($existencia) {
+                            if($existencia == -1) {
+                                return $ifwhere->whereNull('AUA.existencia'); 
                             } else {
-                                return $ifwhere->whereNotNull('AUA.conteo')->whereNotNull('AU.fechaGuardada'); 
+                                return $ifwhere->whereNotNull('AUA.existencia')->whereNotNull('AU.fechaGuardada'); 
                             }
                         })
                         
@@ -135,17 +135,17 @@ class ActivosController extends Controller
                         ;
         }
 
-        /** Filtrado de los registros nulos y retirado de los conteos  de auditorias no guardadas */
+        /** Filtrado de los registros nulos y retirado de los existencias  de auditorias no guardadas */
         $query = $query->filter(function ($registro) {
-            if(!$registro->conteo_guardado || !$registro->fecha_conteo) {
-                unset($registro->conteo_guardado);
-                unset($registro->fecha_conteo);
-                unset($registro->id_auditoria_conteo);
+            if(!$registro->existencia_guardada || !$registro->fecha_existencia) {
+                unset($registro->existencia_guardada);
+                unset($registro->fecha_existencia);
+                unset($registro->id_auditoria_existencia);
                 unset($registro->auditoria_autor);
             }
 
-            if(!$registro->conteo_actual) {
-                unset($registro->conteo_actual);
+            if(!$registro->existencia_actual) {
+                unset($registro->existencia_actual);
             }
 
             return true;
