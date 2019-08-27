@@ -155,6 +155,9 @@ Crea una nueva auditoria según los parámetros obligatorios soliciados.
 Crea una nueva auditoria.
 ### Parametros:
 + **descripcion**(*string*): Texto que describa a la nueva auditoria, como un nombre o razon por la que se realiza.
++ **empresa**(*int*): ID de la empresa a la que se esta auditando.
++ **departamento**(*int*): ID del departamento de la empresa a la que se esta auditando.
++ **clasificacion**(*int*): ID de la clasificacion que se esta auditando.
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
