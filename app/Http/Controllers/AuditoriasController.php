@@ -104,6 +104,9 @@ class AuditoriasController extends Controller
                         ) as status"),
                         "descripcion",
                         "username",
+                        "idEmpresa",
+                        "idDepartamento",
+                        "idClasificacion",
                         "terminada",
                         "fechaGuardada"
                     )
@@ -136,6 +139,27 @@ class AuditoriasController extends Controller
                         ->skip(($page-1)*$page_size)
                         ->take($page_size)
                         ->get();
+
+        /** Filtrado de los registros nulos */
+        $query = $query->filter(function ($registro) {
+            if(!$registro->idDepartamento) {
+                unset($registro->idDepartamento);
+            }
+            if(!$registro->idEmpresa) {
+                unset($registro->idEmpresa);
+            }
+            if(!$registro->idClasificacion) {
+                unset($registro->idClasificacion);
+            }
+            if(!$registro->fechaGuardada) {
+                unset($registro->fechaGuardada);
+            }
+            if(!$registro->descripcion) {
+                unset($registro->descripcion);
+            }
+            return true;
+        });
+                        
         return self::queryOk($query);
     }
 
@@ -161,14 +185,20 @@ class AuditoriasController extends Controller
 
         /** Parametros necesarios para crear un nuevo registro */
         $idUser = AuthController::getUserFromToken($request->input('token'));
+
         $descripcion = $request->input('descripcion');
+        $idEmpresa = $request->input('empresa');
+        $idDepartamento = $request->input('departamento');
+        $idClasificacion = $request->input('clasificacion');
 
         $newAuditoria = new Auditoria;
 
         $newAuditoria->idUser = $idUser;
-        if($descripcion) {
-            $newAuditoria->descripcion = $descripcion;
-        }
+        $newAuditoria->descripcion = $descripcion ? $descripcion : null;
+        $newAuditoria->idEmpresa = $idEmpresa ? $idEmpresa : null;
+        $newAuditoria->idDepartamento = $idDepartamento ? $idDepartamento : null;
+        $newAuditoria->idClasificacion =$idClasificacion ? $idClasificacion : null;
+
 
         if($newAuditoria->save()) {
             return self::querySaved();
@@ -220,6 +250,9 @@ class AuditoriasController extends Controller
         $terminada = $request->input('terminada');
         $fechaGuardada = $request->input('guardada');
         $descripcion = $request->input('descripcion');
+        $idEmpresa = $request->input('empresa');
+        $idDepartamento = $request->input('departamento');
+        $idClasificacion = $request->input('clasificacion');
 
         /** Verificacion de que existe la auditoria solicitada */
         $editAuditoria = Auditoria::find($id);
@@ -257,9 +290,7 @@ class AuditoriasController extends Controller
             }
         }
 
-        if($descripcion) {
-            $editAuditoria->descripcion = $descripcion;
-        }
+        $editAuditoria->descripcion = $descripcion ? $descripcion : null;
 
         /** Guardado con comprobacion de éxito */
         if($editAuditoria->save()) {
