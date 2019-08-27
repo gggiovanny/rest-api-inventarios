@@ -105,9 +105,9 @@ class AuditoriasActivosController extends Controller
             return self::warningEntryNoExist();
         }
         /** Parametro obligatorios */
-        $conteo = $request->input('conteo');
+        $existencia = $request->input('existencia');
 
-        if(!($id_activo && $conteo)) {
+        if(is_null($id_activo) && is_null($existencia)) {
             return self::warningNoParameters();
         }
 
@@ -120,7 +120,13 @@ class AuditoriasActivosController extends Controller
         $new->idAuditoria = $idAuditoria;
         $new->idActivoFijo = $id_activo;
         $new->idUser = $idUser;
-        $new->conteo = $conteo;
+        if($existencia == 0 && !is_null($existencia)) {
+            $new->existencia = 0;
+        }
+        if($existencia >= 1 || $existencia === 'true') {
+            $new->existencia = 1;
+        }
+
 
         if($new->save()) {
             return self::querySaved();
@@ -178,9 +184,9 @@ class AuditoriasActivosController extends Controller
         /** Usuario obtenido a partir del token */
         $idUser = AuthController::getUserFromToken($request->input('token'));
         /** Parametro obligatorio */
-        $conteo = $request->input('conteo');
+        $existencia = $request->input('existencia');
 
-        if(!$conteo) {
+        if(is_null($existencia)) {
             return self::warningNoParameters();
         }
 
@@ -192,7 +198,13 @@ class AuditoriasActivosController extends Controller
         }
 
         $update->idUser = $idUser;
-        $update->conteo = $conteo;
+
+        if($existencia == 0 && !is_null($existencia)) {
+            $update->existencia = 0;
+        }
+        if($existencia >= 1 || $existencia === 'true') {
+            $update->existencia = 1;
+        }
 
         if($update->save()) {
             return self::querySaved('update');

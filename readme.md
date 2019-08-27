@@ -80,17 +80,17 @@ Regresa un listado de los activos filtrado según los parámetros proporcionados
 + **departamento**(*numerico*): listar activos unicamente del id del departamento indicado.
 + **clasificacion**(*numerico*): listar activos unicamente del id de la clasificacion indicada.
 + **clasificacion**(*numerico*): listar activos unicamente del id de la clasificacion indicada.
-+ **auditoria_actual**(*numerico*): Este parámetro se utiliza cuando se listan activos para una auditoria en particular. Segun la ID de auditoria proporcionada, se mostrará un campo llamado *conteo_actual* donde figurará el conteo de cada activo en la auditoria indicada, independientemente si la auditoria está marcada como guardada o no.
++ **auditoria_actual**(*numerico*): Este parámetro se utiliza cuando se listan activos para una auditoria en particular. Segun la ID de auditoria proporcionada, se mostrará un campo llamado *existencia_actual* donde figurará la existencia de cada activo en la auditoria indicada, independientemente si la auditoria está marcada como guardada o no.
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 + **list**(*array*):
   + **idActivoFijo**(*int*): Identificador del activo fijo.
   + **descripcion**(*string*): Nombre o descripción del activo.
-  + **conteo_guardado**(*int*): El último conteo hecho en una auditoria marcado como guardado del activo en cuestión. Si no existe conteo para dicho activo, este campo será *null* y no figurará en el los campos del activo.
-  + **conteo_actual**(*int*): Segun la ID de auditoria proporcionada en el parámetro *auditoria_actual*, se mostrará en este campo el conteo de cada activo en la auditoria indicada, independientemente si la auditoria está marcada como guardada o no.
-  + **fecha_conteo**(*datetime*): fecha en la que se realizo el conteo.
-  + **id_auditoria_conteo**(*int*): ID de la auditoria en la que se hizo el conteo del activo.
+  + **existencia_guardada**(*int*): El último estatus de existencia hecho en una auditoria marcada como guardada del activo en cuestión. Si no existe existencia para dicho activo, este campo será *null* y no figurará en el los campos del activo.
+  + **existencia_actual**(*int*): Segun la ID de auditoria proporcionada en el parámetro *auditoria_actual*, se mostrará en este campo la existencia de cada activo en la auditoria indicada, independientemente si la auditoria está marcada como guardada o no.
+  + **fecha_existencia**(*datetime*): fecha en la que se estableció el status de existencia.
+  + **id_auditoria_existencia**(*int*): ID de la auditoria en la que se  estableció el status de existencia del activo.
   + **idClasificacion**(*int*): ID de la clasificación del activo.
   + **idDepartamento**(*int*): ID del departamento en el que se ubica actualmente el activo.
   + **idEmpresa**(*int*): ID de la empresa en el que se ubica actualmente el activo.
@@ -202,24 +202,24 @@ Regresa un listado de los activos contabilizados en la auditoria indicada en *{i
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 + **list**(*array*):
-  + **idAuditoria**(*int*): ID de la auditoria a la que pertenece el conteo.
+  + **idAuditoria**(*int*): ID de la auditoria a la que pertenece el registro.
   + **idActivoFijo**(*int*): ID del activo contabilizado.
-  + **idUser**(*int*): ID del usuario que realizó dicho conteo.
-  + **conteo**(*int*): Conteo del activo.
+  + **idUser**(*int*): ID del usuario que actualizó dicha existencia.
+  + **existencia**(*bool*): Existencia del activo.
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos?user=17
 
 
 # Endpoint: POST:  api/auditorias/{id_auditoria}/activos/{id_activo}
 ### Descripcion:
-Permite guardar un conteo de un activo. Si se llama de nuevo con la misma combinación de *{id_auditoria}* y *{id_activo}*, no se guardará una nueva entrada, si no que se actualizará la existente.
+Permite guardar un existencia de un activo. Si se llama de nuevo con la misma combinación de *{id_auditoria}* y *{id_activo}*, no se guardará una nueva entrada, si no que se actualizará la existente.
 ### Parametros:
-+ **conteo**(*int*): `Obligatorio`. A través de este parámetro se indica la cantidad contabilizada del activo con la id indicada en *{id_activo}* que a su vez pertenece a la auditoria indicada en {id_auditoria}.
++ **existencia**(*bool*): `Obligatorio`. A través de este parámetro se indica la cantidad contabilizada del activo con la id indicada en *{id_activo}* que a su vez pertenece a la auditoria indicada en {id_auditoria}.
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 ### Petición de ejemplo
-http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/12?conteo=7
+http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/12?existencia=7
 
 # Endpoint: GET|HEAD:  api/auditorias/{id_auditoria}/activos/{id_activo}
 ### Descripcion:
@@ -230,23 +230,23 @@ Ninguno.
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 + **list**(*array*):
-  + **idAuditoria**(*int*): ID de la auditoria a la que pertenece el conteo.
+  + **idAuditoria**(*int*): ID de la auditoria a la que pertenece la existencia.
   + **idActivoFijo**(*int*): ID del activo contabilizado.
-  + **idUser**(*int*): ID del usuario que realizó dicho conteo.
-  + **conteo**(*int*): Conteo del activo.
+  + **idUser**(*int*): ID del usuario que indicó dicha existencia.
+  + **existencia**(*bool*): Conteo del activo.
 ### Petición de ejemplo
 http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/54
 
 # Endpoint: PUT:  api/auditorias/{id_auditoria}/activos/{id_activo}
 ### Descripcion:
-Permite actualizar el conteo de un activo.
+Permite actualizar la existencia de un activo.
 ### Parametros:
-+ **conteo**(*int*): `Obligatorio`. A través de este parámetro se indica la cantidad contabilizada del activo con la id indicada en *{id_activo}* que a su vez pertenece a la auditoria indicada en {id_auditoria}.
++ **existencia**(*bool*): `Obligatorio`. A través de este parámetro se indica la cantidad contabilizada del activo con la id indicada en *{id_activo}* que a su vez pertenece a la auditoria indicada en {id_auditoria}.
 ### Respuesta
 + **status**(*string*): Su valor será *ok* si la peticion regresó una respuesta satisfactoria, de lo contrario, su valor será `error` o `warning`.
 + **description**(*string*): Descripcion del status superior. Es particularmente relevante cuando sucede un error o un warning, pues especifica la razón.
 ### Petición de ejemplo
-http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/54?conteo=11
+http://grupodicas.com.mx/activosfijos/api/auditorias/2/activos/54?existencia=1
 
 # Endpoint: GET:  api/empresas 
 ### Descripcion:
