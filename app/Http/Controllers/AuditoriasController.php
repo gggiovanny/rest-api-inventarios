@@ -91,10 +91,11 @@ class AuditoriasController extends Controller
            0 => 'Cualquiera'
        ];
 
+       DB::statement("SET lc_time_names = 'es_MX';");
        $query = Auditoria::join('users as u', 'auditorias.idUser', 'u.id')
                     ->select(
                         "idAuditoria as id",
-                        "fechaCreacion",
+                        DB::raw("DATE_FORMAT(fechaCreacion, '%e de %M, %Y') as fechaCreacion"),
                         DB::raw("(  CASE
                                         WHEN terminada = 0 AND fechaGuardada is null THEN '$status_catalog[1]'
                                         WHEN terminada = 1 AND fechaGuardada is null THEN '$status_catalog[2]'
@@ -312,3 +313,4 @@ class AuditoriasController extends Controller
         //
     }
 }
+
