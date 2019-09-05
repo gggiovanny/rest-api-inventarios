@@ -82,7 +82,7 @@ class AuditoriasController extends Controller
        $search = $request->input('search');
        /** Ordenamiento */
        $sort_by = $request->input('sort_by') ? $request->input('sort_by') : 'idAuditoria';
-       $sort_order = $request->input('sort_order') ? $request->input('sort_order') : 'asc';
+       $sort_order = $request->input('sort_order') ? $request->input('sort_order') : 'desc';
 
        $status_catalog = [
            1 => 'En curso',
