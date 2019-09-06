@@ -200,9 +200,10 @@ class AuditoriasController extends Controller
         $newAuditoria->idDepartamento = $idDepartamento ? $idDepartamento : null;
         $newAuditoria->idClasificacion =$idClasificacion ? $idClasificacion : null;
 
-
+        
         if($newAuditoria->save()) {
-            return self::querySaved();
+            $query = DB::select( DB::raw("select LAST_INSERT_ID() as id"));
+            return self::createOk($query);
         } else {
             return self::warningNoSaved();
         }     
