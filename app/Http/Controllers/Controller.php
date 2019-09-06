@@ -28,6 +28,13 @@ class Controller extends BaseController
         return Response($return, 200);
     }
 
+    public static function createOk($query)
+    {
+        $return = AuthController::status('ok', 'Entry sucessfuly created');
+        $return +=['id' => $query[0]->id];
+        return Response($return, 200);
+    }
+
     public static function queryEmpty()
     {
         $return = AuthController::status('ok', 'Query correcto, pero sin resultados!');
