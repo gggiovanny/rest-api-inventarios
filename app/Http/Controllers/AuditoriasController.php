@@ -93,6 +93,8 @@ class AuditoriasController extends Controller
 
        DB::statement("SET lc_time_names = 'es_MX';");
        $query = Auditoria::join('users as u', 'auditorias.idUser', 'u.id')
+                    ->leftJoin('empresas as e', 'auditorias.idEmpresa', 'e.idEmpresa')
+                    ->leftJoin('departamentos as d', 'auditorias.idDepartamento', 'd.idDepartamento')
                     ->select(
                         "idAuditoria as id",
                         DB::raw("DATE_FORMAT(fechaCreacion, '%e de %M, %Y') as fechaCreacion"),
@@ -103,10 +105,12 @@ class AuditoriasController extends Controller
                                         ELSE '$status_catalog[0]'
                                     END
                         ) as status"),
-                        "descripcion",
-                        "username",
-                        "idEmpresa",
-                        "idDepartamento",
+                        "auditorias.descripcion",
+                        "u.username",
+                        "auditorias.idEmpresa",
+                        "e.nombre as empresa",
+                        "auditorias.idDepartamento",
+                        "d.nombre as departamento",
                         "idClasificacion",
                         "terminada",
                         "fechaGuardada"
@@ -145,9 +149,11 @@ class AuditoriasController extends Controller
         $query = $query->filter(function ($registro) {
             if(!$registro->idDepartamento) {
                 unset($registro->idDepartamento);
+                unset($registro->departamento);
             }
             if(!$registro->idEmpresa) {
                 unset($registro->idEmpresa);
+                unset($registro->empresa);
             }
             if(!$registro->idClasificacion) {
                 unset($registro->idClasificacion);
@@ -158,6 +164,7 @@ class AuditoriasController extends Controller
             if(!$registro->descripcion) {
                 unset($registro->descripcion);
             }
+            
             return true;
         });
                         
