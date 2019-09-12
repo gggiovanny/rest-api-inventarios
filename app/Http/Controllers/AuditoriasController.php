@@ -95,6 +95,7 @@ class AuditoriasController extends Controller
        $query = Auditoria::join('users as u', 'auditorias.idUser', 'u.id')
                     ->leftJoin('empresas as e', 'auditorias.idEmpresa', 'e.idEmpresa')
                     ->leftJoin('departamentos as d', 'auditorias.idDepartamento', 'd.idDepartamento')
+                    ->leftJoin('clasificaciones as c', 'auditorias.idClasificacion', 'c.idClasificacion')
                     ->select(
                         "idAuditoria as id",
                         DB::raw("DATE_FORMAT(fechaCreacion, '%e de %M, %Y') as fechaCreacion"),
@@ -111,7 +112,8 @@ class AuditoriasController extends Controller
                         "e.nombre as empresa",
                         "auditorias.idDepartamento",
                         "d.nombre as departamento",
-                        "idClasificacion",
+                        "auditorias.idClasificacion",
+                        "c.nombre as clasificacion",
                         "terminada",
                         "fechaGuardada"
                     )
@@ -157,6 +159,7 @@ class AuditoriasController extends Controller
             }
             if(!$registro->idClasificacion) {
                 unset($registro->idClasificacion);
+                unset($registro->clasificacion);
             }
             if(!$registro->fechaGuardada) {
                 unset($registro->fechaGuardada);
