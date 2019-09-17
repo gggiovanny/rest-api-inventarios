@@ -149,22 +149,22 @@ class AuditoriasController extends Controller
 
         /** Filtrado de los registros nulos */
         $query = $query->filter(function ($registro) {
-            if(!$registro->idDepartamento) {
+            if(is_null($registro->idDepartamento)) {
                 unset($registro->idDepartamento);
                 unset($registro->departamento);
             }
-            if(!$registro->idEmpresa) {
+            if(is_null($registro->idEmpresa)) {
                 unset($registro->idEmpresa);
                 unset($registro->empresa);
             }
-            if(!$registro->idClasificacion) {
+            if(is_null($registro->idClasificacion)) {
                 unset($registro->idClasificacion);
                 unset($registro->clasificacion);
             }
-            if(!$registro->fechaGuardada) {
+            if(is_null($registro->fechaGuardada)) {
                 unset($registro->fechaGuardada);
             }
-            if(!$registro->descripcion) {
+            if(is_null($registro->descripcion)) {
                 unset($registro->descripcion);
             }
             

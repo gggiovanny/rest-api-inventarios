@@ -45,7 +45,7 @@ class ActivosController extends Controller
                         ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
                         ->select(   'activosfijos.idActivoFijo'
                                     ,'activosfijos.descripcion'
-                                    ,'AUA.existencia AS existencia_guardada'
+                                    ,DB::raw('CONVERT(AUA.existencia, SIGNED) AS existencia_guardada')
                                     ,DB::raw('(select existencia from auditorias_activofijos where idAuditoria = '.$auditoria_actual.' and idActivoFijo = activosfijos.idActivoFijo) as existencia_actual')
                                     ,'AU.fechaGuardada AS fecha_existencia'
 	                                ,'AUA.idAuditoria as id_auditoria_existencia'
@@ -75,7 +75,7 @@ class ActivosController extends Controller
                         ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
                         ->select(   'MVD.idActivoFijo'
                                     ,'ACT.descripcion'
-                                    ,'AUA.existencia AS existencia_guardada'
+                                    ,DB::raw('CONVERT(AUA.existencia, SIGNED) AS existencia_guardada')
                                     ,DB::raw('(select existencia from auditorias_activofijos where idAuditoria = '.$auditoria_actual.' and idActivoFijo = MVD.idActivoFijo) as "existencia_actual"')
                                     ,'AU.fechaGuardada AS fecha_existencia'
                                     ,'AUA.idAuditoria as id_auditoria_existencia'
@@ -137,14 +137,14 @@ class ActivosController extends Controller
 
         /** Filtrado de los registros nulos y retirado de los existencias  de auditorias no guardadas */
         $query = $query->filter(function ($registro) {
-            if(!$registro->existencia_guardada || !$registro->fecha_existencia) {
+            if( is_null($registro->existencia_guardada) || is_null($registro->fecha_existencia) ) {
                 unset($registro->existencia_guardada);
                 unset($registro->fecha_existencia);
                 unset($registro->id_auditoria_existencia);
                 unset($registro->auditoria_autor);
             }
 
-            if(!$registro->existencia_actual) {
+            if( is_null($registro->existencia_actual) ) {
                 unset($registro->existencia_actual);
             }
 
