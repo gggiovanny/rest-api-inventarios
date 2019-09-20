@@ -24,6 +24,7 @@ Route::apiResource('auth', 'AuthController');
 Route::apiResource('auditorias', 'AuditoriasController');
 Route::apiResource('empresas', 'EmpresasController');
 Route::apiResource('departamentos', 'DepartamentosController');
+Route::apiResource('clasificaciones', 'ClasificacionesController');
 
 Route::get('auditorias/{id_auditoria}/activos', 'AuditoriasActivosController@index');
 Route::get('auditorias/{id_auditoria}/activos/{id_activo}', 'AuditoriasActivosController@show');
