@@ -41,10 +41,10 @@ class AuthController extends Controller
             $token = $request->input('token');
             $permisionCheck = self::checkToken($token);
             if($permisionCheck['status'] !== 'ok' ) {
-                exit(response()->json($permisionCheck)->content()); //mostrar error
+                exit(response()->json($permisionCheck)->content()); //mostrar errorInternal
             } 
         } catch (\Exception $th) {
-             exit(response()->json(self::status('error', $th->getMessage()))->content());
+             self::errorExit($th->getMessage());
         }
     }
 
@@ -71,20 +71,20 @@ class AuthController extends Controller
     private static function checkToken($jwtToken)
     {
         if(empty($jwtToken)) {
-            return self::status('error', 'Invalid token supplied');
+            return self::errorInternal('Token inválido');
         }
 
         try {
             $decode = JWT::decode($jwtToken, self::$key, self::$encryption);
         } catch (\Exception $e){
-            return self::status('error', $e->getMessage());
+            return self::errorInternal($e->getMessage());
         }
 
         if($decode->cid !== self::clientID()) {
-            return self::status('error', 'Invalid device for this token. Try sing in again');
+            return self::errorInternal('Dispositivo no válido para este token. Intente iniciar sesión nuevamente.');
         }
 
-        return self::status('ok', 'Valid token, or u are a good hacker ;)');
+        return self::okInternal('Valid token, or u are a good hacker ;)');
     }
 
     private function getToken($userRequested, $passwdRequested)
@@ -116,14 +116,14 @@ class AuthController extends Controller
                     ]
                 );
 
-            $response = self::status('ok', 'Token sucessful generated');
+            $response = self::ok('Token creado exitosamente!');
             $response +=['username' => $userName];
             $response +=['token' => JWT::encode($token, self::$key)];
 
             return $response;
             
         } else {
-            return self::status('error', 'Usuario o contraseña incorrecto!');
+            return self::errorInternal('Usuario o contraseña incorrecto!');
         }
     }
 

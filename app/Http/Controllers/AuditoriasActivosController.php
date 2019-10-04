@@ -129,7 +129,7 @@ class AuditoriasActivosController extends Controller
 
 
         if($new->save()) {
-            return self::querySaved();
+            return self::postOk();
         } else {
             return self::warningNoSaved();
         }
@@ -190,7 +190,6 @@ class AuditoriasActivosController extends Controller
             return self::warningNoParameters();
         }
 
-
         $update = AuditoriasActivos::where('idActivofijo', $id_activo)->where('idAuditoria', $idAuditoria)->first();
 
         if(is_null($update)) {
@@ -207,7 +206,7 @@ class AuditoriasActivosController extends Controller
         }
 
         if($update->save()) {
-            return self::querySaved('update');
+            return self::putOK();
         } else {
             return self::warningNoSaved();
         }    
