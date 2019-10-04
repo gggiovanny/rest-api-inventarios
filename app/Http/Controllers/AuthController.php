@@ -116,7 +116,7 @@ class AuthController extends Controller
                     ]
                 );
 
-            $response = self::ok('Token creado exitosamente!');
+            $response = self::okInternal('Token creado exitosamente!');
             $response +=['username' => $userName];
             $response +=['token' => JWT::encode($token, self::$key)];
 
