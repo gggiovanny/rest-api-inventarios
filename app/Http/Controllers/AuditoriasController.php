@@ -213,7 +213,7 @@ class AuditoriasController extends Controller
         
         if($newAuditoria->save()) {
             $query = DB::select( DB::raw("select LAST_INSERT_ID() as id"));
-            return self::createOk($query);
+            return self::postIdOk($query);
         } else {
             return self::warningNoSaved();
         }     
@@ -306,7 +306,7 @@ class AuditoriasController extends Controller
 
         /** Guardado con comprobacion de éxito */
         if($editAuditoria->save()) {
-            return self::querySaved('update');
+            return self::putOK();
         } else {
             return self::warningNoSaved();
         }    
