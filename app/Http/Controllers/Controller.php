@@ -25,6 +25,13 @@ class Controller extends BaseController
         );
     }
 
+    public static function warningSameAuditoriaInProgress($id)
+    {
+        $return = self::status('warning', 'Existe una auditoria igual a esta en progreso! Use esa en lugar de crear una nueva.', ResponseType::WARNING);
+        $return += ['idAuditoria' => $id];
+        return Response($return, 400);
+    }
+
     public static function okInternal($description)
     {
         return AuthController::status('ok', $description, ResponseType::GET);
