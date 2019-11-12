@@ -39,7 +39,7 @@ class ActivosController extends Controller
         $sort_order = $request->input('sort_order') ? $request->input('sort_order') : 'asc';
 
         /** Verifiacion de existencia de los campos obligatorios */
-        if( is_null($auditoria_actual) || $auditoria_actual == "0") {
+        if (is_null($auditoria_actual) || $auditoria_actual == "0") {
             return self::warningNoParameters();
         }
 
@@ -71,34 +71,62 @@ class ActivosController extends Controller
                             on m.idMovimiento = md.idMovimiento
                         where md.idActivoFijo = MVD.idActivoFijo
                         )')
-            ->whereRaw('(
+            ->whereRaw(
+                ' -- NOTA: Se recorren todos los activos fijos de auditorias, por ello sin los CASE se verian identificadores repetidos de activo fijo.
+                CASE
+                    -- CUANDO EL ACTIVO FIJO DE AUDITORIA ESTA GUARDADO, SOLO MOSTRAR EL MAS RECIENTE (los demas no pasan el filtro y no se visualizan).
+                    WHEN (	select count(*)
+                            from auditorias_activofijos aa
+                            inner join auditorias a
+                                on aa.idAuditoria = a.idAuditoria
+                            where a.fechaGuardada is not null
+                            and aa.idActivoFijo = MVD.idActivoFijo ) >= 1
+                    THEN AU.fechaGuardada =	(
+                                            select MAX(a.fechaGuardada)
+                                            from auditorias_activofijos aa
+                                            inner join auditorias a
+                                                on aa.idAuditoria = a.idAuditoria
+                                            where aa.idActivoFijo = MVD.idActivoFijo
+                                            )
+                    ELSE 
                         CASE
-                            WHEN (	select count(*)
-                                    from auditorias_activofijos aa
-                                    inner join auditorias a
-                                        on aa.idAuditoria = a.idAuditoria
-                                    where a.fechaGuardada is not null
-                                    and aa.idActivoFijo = MVD.idActivoFijo ) >= 1
-                            THEN AU.fechaGuardada =	(
-                                                    select MAX(a.fechaGuardada)
-                                                    from auditorias_activofijos aa
-                                                    inner join auditorias a
-                                                        on aa.idAuditoria = a.idAuditoria
-                                                    where aa.idActivoFijo = MVD.idActivoFijo
-                
-                                                    )
-                            ELSE    CASE
-                                        WHEN AUA.idAuditoria IS NOT NULL
-                                        THEN AUA.idAuditoria = ' . $auditoria_actual . '
-                                        ELSE 1=1
-                                    END								
-                        END			
-                    ) ')
-                    
+                            -- SI el activo fijo pertenece a alguna auditoria y NO esta guardado, solo traer 1, por lo que...
+                                -- SI hay alguno de la auditoria actual, mostrar solo ese
+                                -- SI NO, mostrar el mas reciente y ocultar su existencia, guardado y autor (ese ocultamiento se hace en el SELECT).
+                            -- SI NO esta en ninguna auditoria, mostrarlo tal cual.
+                            WHEN AUA.idAuditoria IS NOT NULL -- SI ES NULL, ENTONCES DICHO ACTIVO NO ESTA EN UNA AUDITORIA
+                                AND AU.fechaGuardada IS NULL
+                            THEN	
+                                case
+                                    -- este select regresa el numero de activos fijos de auditorias no guardados que pertenezcan a la auditoria actual
+                                    when (	select count(*)
+                                            from auditorias_activofijos aa
+                                            inner join auditorias a
+                                                on aa.idAuditoria = a.idAuditoria
+                                            where a.fechaGuardada is null
+                                            and aa.idActivoFijo = MVD.idActivoFijo
+                                            and aa.idAuditoria = @ID_AUDITORIA_ACTIVA) >= 1
+                                    then AUA.idAuditoria = @ID_AUDITORIA_ACTIVA
+                                    else AUA.idAuditoria = 	(
+                                                                select MAX(aa.idAuditoria)
+                                                                from auditorias_activofijos aa
+                                                                inner join auditorias a
+                                                                    on aa.idAuditoria = a.idAuditoria
+                                                                where a.fechaGuardada is null
+                                                                and aa.idActivoFijo = MVD.idActivoFijo
+                                                                and aa.idAuditoria <> @ID_AUDITORIA_ACTIVA
+                                                            )
+                                end 
+                            ELSE 1=1
+                        END
+                END'
+            )
+
+            /*
             ->where('EMP.idEmpresa', Auditoria::find($auditoria_actual)->idEmpresa)
             ->where('DEP.idDepartamento', Auditoria::find($auditoria_actual)->idDepartamento)
-            ->where('ACT.idClasificacion', Auditoria::find($auditoria_actual)->idClasificacion)
-            
+            ->where('ACT.idClasificacion', Auditoria::find($auditoria_actual)->idClasificacion)*/
+
             ->when($idEmpresa, function ($ifwhere) use ($idEmpresa) {
                 return $ifwhere->where('EMP.idEmpresa', $idEmpresa);
             })
@@ -118,7 +146,7 @@ class ActivosController extends Controller
                     return $ifwhere->whereNotNull('AUA.existencia')->whereNotNull('AU.fechaGuardada');
                 }
             })
-                       
+
 
             ->orderBy($sort_by, $sort_order)
             ->skip(($page - 1) * $page_size)
