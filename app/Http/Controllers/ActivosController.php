@@ -25,9 +25,6 @@ class ActivosController extends Controller
         $page_size = $request->input('page_size') ? $request->input('page_size') : self::$PAGE_SIZE_DEFAULT;
         $page = $request->input('page') ? $request->input('page') : 1;
         /** Filtros */
-        $idEmpresa = $request->input('empresa');
-        $idDepartamento = $request->input('departamento');
-        $idClasificacion = $request->input('clasificacion');
         $existencia = $request->input('existencia');
         if (($existencia === '0' || $existencia === 'false') && !is_null($existencia)) {
             $existencia = -1;
@@ -121,20 +118,11 @@ class ActivosController extends Controller
                         END
                 END'
             )
-
-            /*
-            ->where('EMP.idEmpresa', Auditoria::find($auditoria_actual)->idEmpresa)
-            ->where('DEP.idDepartamento', Auditoria::find($auditoria_actual)->idDepartamento)
-            ->where('ACT.idClasificacion', Auditoria::find($auditoria_actual)->idClasificacion)*/
-
-            ->when($idEmpresa, function ($ifwhere) use ($idEmpresa) {
-                return $ifwhere->where('EMP.idEmpresa', $idEmpresa);
-            })
-            ->when($idDepartamento, function ($ifwhere) use ($idDepartamento) {
-                return $ifwhere->where('DEP.idDepartamento', $idDepartamento);
-            })
-            ->when($idClasificacion, function ($ifwhere) use ($idClasificacion) {
-                return $ifwhere->where('ACT.idClasificacion', $idClasificacion);
+                                        
+            ->when($auditoria_actual, function($ifwhere) use ($auditoria_actual) {
+                return $ifwhere->where('EMP.idEmpresa', Auditoria::find($auditoria_actual)->idEmpresa)
+                ->where('DEP.idDepartamento', Auditoria::find($auditoria_actual)->idDepartamento)
+                ->where('ACT.idClasificacion', Auditoria::find($auditoria_actual)->idClasificacion);
             })
             ->when($search, function ($ifwhere) use ($search) {
                 return $ifwhere->where('ACT.descripcion', 'like', '%' . $search . '%');
