@@ -25,6 +25,14 @@ class Controller extends BaseController
         );
     }
 
+    public static function warningNoExisteAuditoriaParaId($id, $max_id)
+    {
+        $max_id = $max_id ? $max_id : 0; //Por si la tabla esta vacio max_id es null
+        $return = AuthController::status('warning', 'No existe auditoria para la ID '.$id.'. La mayor es '.$max_id, ResponseType::WARNING);
+        $return +=['max_id' => $max_id];
+        return Response($return, 400);
+    }
+
     public static function warningSameAuditoriaInProgress($id)
     {
         $return = self::status('warning', 'Existe una auditoria igual a esta en progreso! Use esa en lugar de crear una nueva.', ResponseType::WARNING);
