@@ -109,8 +109,8 @@ class ActivosController extends Controller
                                                 on aa.idAuditoria = a.idAuditoria
                                             where a.fechaGuardada is null
                                             and aa.idActivoFijo = MVD.idActivoFijo
-                                            and aa.idAuditoria = @ID_AUDITORIA_ACTIVA) >= 1
-                                    then AUA.idAuditoria = @ID_AUDITORIA_ACTIVA
+                                            and aa.idAuditoria = ' . $auditoria_actual . ') >= 1
+                                    then AUA.idAuditoria = ' . $auditoria_actual . '
                                     else AUA.idAuditoria = 	(
                                                                 select MAX(aa.idAuditoria)
                                                                 from auditorias_activofijos aa
@@ -118,7 +118,7 @@ class ActivosController extends Controller
                                                                     on aa.idAuditoria = a.idAuditoria
                                                                 where a.fechaGuardada is null
                                                                 and aa.idActivoFijo = MVD.idActivoFijo
-                                                                and aa.idAuditoria <> @ID_AUDITORIA_ACTIVA
+                                                                and aa.idAuditoria <> ' . $auditoria_actual . '
                                                             )
                                 end 
                             ELSE 1=1
