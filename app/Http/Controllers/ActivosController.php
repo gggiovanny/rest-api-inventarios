@@ -39,6 +39,13 @@ class ActivosController extends Controller
         if (is_null($auditoria_actual) || $auditoria_actual == "0") {
             return self::warningNoParameters();
         }
+        /** Validar que la auditoria_actual proporcionada existe */
+        $auditoria_actual_obj = Auditoria::find($auditoria_actual);
+        if (is_null($auditoria_actual_obj)) {
+            $auditoria_max_id = Auditoria::all()->max('idAuditoria');
+            return self::warningNoExisteAuditoriaParaId($auditoria_actual, $auditoria_max_id);
+        }
+
 
         $query = DB::table('movimiento_detalle AS MVD')
             ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
@@ -119,10 +126,10 @@ class ActivosController extends Controller
                 END'
             )
                                         
-            ->when($auditoria_actual, function($ifwhere) use ($auditoria_actual) {
-                return $ifwhere->where('EMP.idEmpresa', Auditoria::find($auditoria_actual)->idEmpresa)
-                ->where('DEP.idDepartamento', Auditoria::find($auditoria_actual)->idDepartamento)
-                ->where('ACT.idClasificacion', Auditoria::find($auditoria_actual)->idClasificacion);
+            ->when($auditoria_actual, function($ifwhere) use ($auditoria_actual_obj) {
+                return $ifwhere->where('EMP.idEmpresa', $auditoria_actual_obj->idEmpresa)
+                ->where('DEP.idDepartamento', $auditoria_actual_obj->idDepartamento)
+                ->where('ACT.idClasificacion', $auditoria_actual_obj->idClasificacion);
             })
             ->when($search, function ($ifwhere) use ($search) {
                 return $ifwhere->where('ACT.descripcion', 'like', '%' . $search . '%');
