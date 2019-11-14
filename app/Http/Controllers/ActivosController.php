@@ -199,9 +199,63 @@ class ActivosController extends Controller
     public function show($id, Request $request)
     {
         AuthController::validateCredentials($request);
-        $query = Activo::select()
-            ->get()
-            ->find($id);
+        $query = DB::table('movimiento_detalle AS MVD')
+            ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
+            ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
+            ->join('departamentos AS DEP', 'MV.destino', 'DEP.idDepartamento')
+            ->join('empresas AS EMP', 'DEP.idEmpresa', 'EMP.idEmpresa')
+            ->leftJoin('auditorias_activofijos as AUA', 'MVD.idActivoFijo', 'AUA.idActivoFijo')
+            ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
+            ->select(
+                'MVD.idActivoFijo',
+                'ACT.descripcion',
+                DB::raw('CONVERT(AUA.existencia, SIGNED) AS existencia_guardada'),
+                'AU.fechaGuardada AS fecha_existencia',
+                'AUA.idAuditoria as id_auditoria_existencia',
+                'AU.idUser AS auditoria_autor',
+                'ACT.idClasificacion',
+                'DEP.idDepartamento',
+                'EMP.idEmpresa',
+                'MV.fecha_acepta AS ultimo_movimiento'
+            )
+            ->where('ACT.estatus', 'false')
+            ->whereRaw('MV.fecha_acepta =	(
+                        select MAX(m.fecha_acepta)
+                        from movimientos m
+                        inner join movimiento_detalle md
+                            on m.idMovimiento = md.idMovimiento
+                        where md.idActivoFijo = MVD.idActivoFijo
+                        )')
+            ->whereRaw(
+                ' -- NOTA: Se recorren todos los activos fijos de auditorias, por ello sin los CASE se verian identificadores repetidos de activo fijo.
+                CASE
+                    -- CUANDO EL ACTIVO FIJO DE AUDITORIA ESTA GUARDADO, SOLO MOSTRAR EL MAS RECIENTE (los demas no pasan el filtro y no se visualizan).
+                    WHEN (	select count(*)
+                            from auditorias_activofijos aa
+                            inner join auditorias a
+                                on aa.idAuditoria = a.idAuditoria
+                            where a.fechaGuardada is not null
+                            and aa.idActivoFijo = MVD.idActivoFijo ) >= 1
+                    THEN AU.fechaGuardada =	(
+                                            select MAX(a.fechaGuardada)
+                                            from auditorias_activofijos aa
+                                            inner join auditorias a
+                                                on aa.idAuditoria = a.idAuditoria
+                                            where aa.idActivoFijo = MVD.idActivoFijo
+                                            )
+                    ELSE 1=1
+                END'
+            )
+            ->where('MVD.idActivoFijo', $id)                            
+            ->get();
+
+            if(!isset($query[0])) {
+                $query = Activo::select()
+                ->get()
+                ->find($id);
+                return self::queryOk($query);
+            }
+
 
         return self::queryOk($query);
     }
