@@ -204,6 +204,7 @@ class ActivosController extends Controller
             ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
             ->join('departamentos AS DEP', 'MV.destino', 'DEP.idDepartamento')
             ->join('empresas AS EMP', 'DEP.idEmpresa', 'EMP.idEmpresa')
+            ->join('clasificaciones as CLAS', 'ACT.idClasificacion', 'CLAS.idClasificacion')
             ->leftJoin('auditorias_activofijos as AUA', 'MVD.idActivoFijo', 'AUA.idActivoFijo')
             ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
             ->select(
@@ -213,9 +214,12 @@ class ActivosController extends Controller
                 'AU.fechaGuardada AS fecha_existencia',
                 'AUA.idAuditoria as id_auditoria_existencia',
                 'AU.idUser AS auditoria_autor',
-                'ACT.idClasificacion',
-                'DEP.idDepartamento',
                 'EMP.idEmpresa',
+                'DEP.idDepartamento',
+                'ACT.idClasificacion',
+                'EMP.nombre as empresa',
+                'DEP.nombre as departamento',
+                'CLAS.nombre as clasificacion',
                 'MV.fecha_acepta AS ultimo_movimiento'
             )
             ->where('ACT.estatus', 'false')
