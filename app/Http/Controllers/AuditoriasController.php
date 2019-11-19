@@ -54,7 +54,7 @@ class AuditoriasController extends Controller
             return false;
         }
 
-        if ($auditoria->terminada == 1) {
+        if (self::isTrue($auditoria->terminada)) {
             return true;
         } else {
             return false;
@@ -359,8 +359,8 @@ class AuditoriasController extends Controller
             $auditoriaTerminada = true;
         }
 
-        if ($fechaGuardada) {
-            if ($auditoriaTerminada) {
+        if (!is_null($fechaGuardada) && $fechaGuardada) {
+            if (!is_null($auditoriaTerminada) && $auditoriaTerminada) {
                 $editAuditoria->fechaGuardada = DB::raw('now()');
             } else {
                 return self::warningAuditoriaNoTerminada();

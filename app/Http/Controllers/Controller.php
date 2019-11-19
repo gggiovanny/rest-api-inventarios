@@ -127,4 +127,12 @@ class Controller extends BaseController
     public static function errorExit($msg) {
         exit(response()->json(self::status('errorInternal', $msg, ResponseType::ERROR))->content());
     }
+
+    public static function isTrue($string_container) {
+        if (strpos($string_container, "\x01") !== false) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
