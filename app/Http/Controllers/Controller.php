@@ -121,7 +121,12 @@ class Controller extends BaseController
 
     public static function errorInternal($description)
     {
-        return AuthController::status('warning', $description, ResponseType::ERROR);
+        switch($description) {
+            case "Expired token":
+                $description = "Sesion caducada";
+            break;
+        }
+        return AuthController::status('error', $description, ResponseType::ERROR);
     }
 
     public static function errorExit($msg) {
