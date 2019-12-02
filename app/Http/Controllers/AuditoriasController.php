@@ -222,6 +222,8 @@ class AuditoriasController extends Controller
                 unset($registro->descripcion);
             }
 
+            $registro->terminada = self::getCorrectBooleanStr($registro->terminada);
+
             return true;
         });
         
