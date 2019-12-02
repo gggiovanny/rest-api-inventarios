@@ -135,4 +135,18 @@ class Controller extends BaseController
             return false;
         }
     }
+
+    public static function getCorrectBooleanStr($valor_raro) {
+        if($valor_raro === "\x01") {
+            return "1";
+        }
+        
+        if($valor_raro === "\x00") {
+            return "0";
+        }
+
+        return $valor_raro;
+    }
+
+    
 }
