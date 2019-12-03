@@ -10,7 +10,7 @@ use Datetime, DatetimeZone, DateInterval;
 class AuthController extends Controller
 {
     private static $key = 'EW-LTW2%YSzQ#Knf+P*FnYnh&9rKt77X9';
-    private static $token_expire_delay = 'P1D'; //tiempo que durará valido el token a partir de su creacion
+    private static $token_expire_delay = 'P5D'; //tiempo que durará valido el token a partir de su creacion
     #private static $token_expire_delay = 'PT3H';
     private static $encryption = ['HS256'];
 

@@ -69,7 +69,7 @@ class AuditoriasController extends Controller
      * repetida si esta funcion devuelve un valor.
      * @return int // La id de la auditoria igual en progreso.
      */
-    private static function isTheSameInProgress($idEmpresa, $idDepartamento, $idClasificacion) {
+    private static function getSameNotSavedId($idEmpresa, $idDepartamento, $idClasificacion) {
         if (
             is_null($idEmpresa) || $idEmpresa == "0" ||
             is_null($idDepartamento) || $idDepartamento == "0" ||
@@ -78,13 +78,12 @@ class AuditoriasController extends Controller
             return -1;
         }
 
-        $auditoriaObj = Auditoria::all()
-                            ->where('idEmpresa', $idEmpresa)
+        $auditoriaObj = Auditoria::where('idEmpresa', $idEmpresa)
                             ->where('idDepartamento', $idDepartamento)
                             ->where('idClasificacion', $idClasificacion)
+                            ->whereNull('fechaGuardada')
                             ->first()
                             ;
-                            
         if(is_null($auditoriaObj)) {
             return -1;
         } else {
@@ -268,7 +267,7 @@ class AuditoriasController extends Controller
         }
 
         
-        if($idSameAuditoria = self::isTheSameInProgress($idEmpresa, $idDepartamento, $idClasificacion) > 0) {
+        if($idSameAuditoria = self::getSameNotSavedId($idEmpresa, $idDepartamento, $idClasificacion) > 0) {
             return self::warningSameAuditoriaInProgress($idSameAuditoria);
         }
 
