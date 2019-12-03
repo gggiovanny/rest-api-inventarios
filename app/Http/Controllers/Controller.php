@@ -30,19 +30,25 @@ class Controller extends BaseController
         $max_id = $max_id ? $max_id : 0; //Por si la tabla esta vacio max_id es null
         $return = AuthController::status('warning', 'No existe auditoria para la ID '.$id.'. La mayor es '.$max_id, ResponseType::WARNING);
         $return +=['max_id' => $max_id];
-        return Response($return, 400);
+        return Response($return, 209);
     }
 
     public static function warningSameAuditoriaInProgress($id)
     {
         $return = self::status('warning', 'Existe una auditoria igual a esta en progreso! Use esa en lugar de crear una nueva.', ResponseType::WARNING);
         $return += ['idAuditoria' => $id];
-        return Response($return, 400);
+        return Response($return, 209);
     }
 
-    public static function okInternal($description)
+    public static function okPartialLogin($description)
     {
         return AuthController::status('ok', $description, ResponseType::GET);
+    }
+
+    public static function loginSucess()
+    {
+        $return = AuthController::status('ok', 'Inicio de sesión correcto!', ResponseType::GET);
+        return Response($return, 200);
     }
 
     public static function queryOk($query)
@@ -65,12 +71,6 @@ class Controller extends BaseController
         return Response($return, 204);
     }
 
-    public static function loginSucess()
-    {
-        $return = AuthController::status('ok', 'Inicio de sesión correcto!', ResponseType::GET);
-        return Response($return, 200);
-    }
-
     public static function postOk()
     {
         $return = AuthController::status('ok', 'Nuevo elemento creado exitosamente', ResponseType::POST);
@@ -86,51 +86,55 @@ class Controller extends BaseController
     public static function warningNoParameters()
     {
         $return = AuthController::status('warning', 'Faltan datos obligatorios!', ResponseType::WARNING);
-        return Response($return, 400);
+        return Response($return, 209);
     }
 
     public static function warningNoSaved()
     {
         $return = AuthController::status('warning', 'No se pudo guardar!', ResponseType::WARNING);
-        return Response($return, 400);
+        return Response($return, 209);
     }
 
     public static function warningEntryNoExist()
     {
         $return = AuthController::status('warning', 'No se pudo obtener el elemento solicitado!', ResponseType::WARNING);
-        return Response($return, 400);
+        return Response($return, 209);
     }
 
     public static function warningAuditoriaGuardada()
     {
         $return = AuthController::status('warning', 'No se puede editar una auditoria marcada como guardada.', ResponseType::WARNING);
-        return Response($return, 400);
+        return Response($return, 209);
     }    
 
     public static function warningAuditoriaNoTerminada()
     {
         $return = AuthController::status('warning', 'No se puede marcar como guardada una auditoria no terminada.', ResponseType::WARNING);
-        return Response($return, 400);
+        return Response($return, 209);
     }
     
     public static function warningNoChanges()
     {
         $return = AuthController::status('warning', 'Sin cambios!', ResponseType::WARNING);
-        return Response($return, 400);
+        return Response($return, 209);
     }
 
-    public static function errorInternal($description)
+    public static function errorLogin($description)
     {
         switch($description) {
             case "Expired token":
                 $description = "Sesion caducada";
             break;
         }
-        return AuthController::status('error', $description, ResponseType::ERROR);
+        return AuthController::status('error', $description, ResponseType::LOGIN_FAILED);
     }
 
     public static function errorExit($msg) {
         exit(response()->json(self::status('errorInternal', $msg, ResponseType::ERROR))->content());
+    }
+
+    public static function errorExitLogin($msg) {
+        exit(response()->json(self::status('errorInternal', $msg, ResponseType::LOGIN_FAILED))->content());
     }
 
     public static function isTrue($string_container) {
