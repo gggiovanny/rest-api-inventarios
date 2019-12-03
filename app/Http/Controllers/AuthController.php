@@ -41,10 +41,10 @@ class AuthController extends Controller
             $token = $request->input('token');
             $permisionCheck = self::checkToken($token);
             if($permisionCheck['status'] !== 'ok' ) {
-                exit(response()->json($permisionCheck)->content()); //mostrar errorInternal
+                exit(response()->json($permisionCheck)->content()); //mostrar errorLogin
             } 
         } catch (\Exception $th) {
-             self::errorExit($th->getMessage());
+             self::errorExitLogin($th->getMessage());
         }
     }
 
@@ -71,20 +71,20 @@ class AuthController extends Controller
     private static function checkToken($jwtToken)
     {
         if(empty($jwtToken)) {
-            return self::errorInternal('Token inválido');
+            return self::errorLogin('Token inválido');
         }
 
         try {
             $decode = JWT::decode($jwtToken, self::$key, self::$encryption);
         } catch (\Exception $e){
-            return self::errorInternal($e->getMessage());
+            return self::errorLogin($e->getMessage());
         }
 
         if($decode->cid !== self::clientID()) {
-            return self::errorInternal('Dispositivo no válido para este token. Intente iniciar sesión nuevamente.');
+            return self::errorLogin('Dispositivo no válido para este token. Intente iniciar sesión nuevamente.');
         }
 
-        return self::okInternal('Valid token, or u are a good hacker ;)');
+        return self::okPartialLogin('Token valido o eres todo un hackerman 7u7');
     }
 
     private function getToken($userRequested, $passwdRequested)
@@ -116,14 +116,14 @@ class AuthController extends Controller
                     ]
                 );
 
-            $response = self::okInternal('Token creado exitosamente!');
+            $response = self::okPartialLogin('Token creado exitosamente!');
             $response +=['username' => $userName];
             $response +=['token' => JWT::encode($token, self::$key)];
 
             return $response;
             
         } else {
-            return self::errorInternal('Usuario o contraseña incorrecto!');
+            return self::errorLogin('Usuario o contraseña incorrecto!');
         }
     }
 

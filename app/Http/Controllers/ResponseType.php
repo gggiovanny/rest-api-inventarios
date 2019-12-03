@@ -7,4 +7,5 @@ abstract class ResponseType {
     const PUT = "PUT";
     const WARNING = "WARNING";
     const ERROR = "ERROR";
+    const LOGIN_FAILED = "LOGIN_FAILED";
 }
