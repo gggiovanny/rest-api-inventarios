@@ -349,27 +349,29 @@ class AuditoriasController extends Controller
             return self::warningNoParameters();
         }
 
-        $auditoriaTerminada = self::isFinished($id);
+        $estaTerminadaEstaAuditoria = self::isFinished($id);
 
         /** Actualizacion de solo los campos especificados por los parametros proporcionados */
         if ($terminada == 0 && !is_null($terminada)) {
             $editAuditoria->terminada = 0;
-            $auditoriaTerminada = false;
+            $estaTerminadaEstaAuditoria = false;
         }
         if ($terminada >= 1 || $terminada === 'true') {
             $editAuditoria->terminada = 1;
-            $auditoriaTerminada = true;
+            $estaTerminadaEstaAuditoria = true;
         }
 
         if (!is_null($fechaGuardada) && $fechaGuardada) {
-            if (!is_null($auditoriaTerminada) && $auditoriaTerminada) {
+            if (!is_null($estaTerminadaEstaAuditoria) && $estaTerminadaEstaAuditoria) {
                 $editAuditoria->fechaGuardada = DB::raw('now()');
             } else {
                 return self::warningAuditoriaNoTerminada();
             }
         }
 
-        $editAuditoria->descripcion = $descripcion ? $descripcion : null;
+        if (!is_null($descripcion) && $descripcion) {
+            $editAuditoria->descripcion = $descripcion;
+        }
 
         /** Guardado con comprobacion de éxito */
         if ($editAuditoria->save()) {
