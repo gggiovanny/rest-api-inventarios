@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\AuditoriasActivos;
 use App\Models\Auditoria;
 use App\Models\Activo;
+use Illuminate\Support\Facades\DB;
 
 class AuditoriasActivosController extends Controller
 {
@@ -115,6 +116,8 @@ class AuditoriasActivosController extends Controller
             return $this->update($idAuditoria, $id_activo, $request);
         }
 
+        $existencia_anterior = self::getExistenciaAnteriorActual($id_auditoria, $id_activo);
+        
         $new = new AuditoriasActivos();
         
         $new->idAuditoria = $idAuditoria;
@@ -126,13 +129,104 @@ class AuditoriasActivosController extends Controller
         if($existencia >= 1 || $existencia === 'true') {
             $new->existencia = 1;
         }
-
+        $new->existencia_anterior = $existencia_anterior;
+        
 
         if($new->save()) {
             return self::postOk();
         } else {
             return self::warningNoSaved();
         }
+    }
+
+    private static function getExistenciaAnteriorActual($auditoria_actual, $idActivo) {
+
+        $query = DB::table('movimiento_detalle AS MVD')
+        ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
+        ->join('movimientos AS MV', 'MVD.idMovimiento', 'MV.idMovimiento')
+        ->join('departamentos AS DEP', 'MV.destino', 'DEP.idDepartamento')
+        ->join('empresas AS EMP', 'DEP.idEmpresa', 'EMP.idEmpresa')
+        ->leftJoin('auditorias_activofijos as AUA', 'MVD.idActivoFijo', 'AUA.idActivoFijo')
+        ->leftJoin('auditorias as AU', 'AUA.idAuditoria', 'AU.idAuditoria')
+        ->select(
+            'MVD.idActivoFijo',
+            'ACT.descripcion',
+            DB::raw('CASE WHEN AU.fechaGuardada IS NULL THEN NULL ELSE CONVERT(AUA.existencia, SIGNED) END AS existencia_guardada'),
+            DB::raw('(select existencia from auditorias_activofijos where idAuditoria = ' . $auditoria_actual . ' and idActivoFijo = MVD.idActivoFijo) as "existencia_actual"'),
+            'AU.fechaGuardada AS fecha_existencia',
+            'AUA.idAuditoria as id_auditoria_existencia',
+            'AU.idUser AS auditoria_autor',
+            'ACT.idClasificacion',
+            'DEP.idDepartamento',
+            'EMP.idEmpresa',
+            'MV.fecha_acepta AS ultimo_movimiento'
+        )
+        ->where('ACT.estatus', 'false')
+        ->whereRaw('MV.fecha_acepta =	(
+                    select MAX(m.fecha_acepta)
+                    from movimientos m
+                    inner join movimiento_detalle md
+                        on m.idMovimiento = md.idMovimiento
+                    where md.idActivoFijo = MVD.idActivoFijo
+                    )')
+        ->whereRaw(
+            ' -- NOTA: Se recorren todos los activos fijos de auditorias, por ello sin los CASE se verian identificadores repetidos de activo fijo.
+            CASE
+                -- CUANDO EL ACTIVO FIJO DE AUDITORIA ESTA GUARDADO, SOLO MOSTRAR EL MAS RECIENTE (los demas no pasan el filtro y no se visualizan).
+                WHEN (	select count(*)
+                        from auditorias_activofijos aa
+                        inner join auditorias a
+                            on aa.idAuditoria = a.idAuditoria
+                        where a.fechaGuardada is not null
+                        and aa.idActivoFijo = MVD.idActivoFijo ) >= 1
+                THEN AU.fechaGuardada =	(
+                                        select MAX(a.fechaGuardada)
+                                        from auditorias_activofijos aa
+                                        inner join auditorias a
+                                            on aa.idAuditoria = a.idAuditoria
+                                        where aa.idActivoFijo = MVD.idActivoFijo
+                                        )
+                ELSE 
+                    CASE
+                        -- SI el activo fijo pertenece a alguna auditoria y NO esta guardado, solo traer 1, por lo que...
+                            -- SI hay alguno de la auditoria actual, mostrar solo ese
+                            -- SI NO, mostrar el mas reciente y ocultar su existencia, guardado y autor (ese ocultamiento se hace en el SELECT).
+                        -- SI NO esta en ninguna auditoria, mostrarlo tal cual.
+                        WHEN AUA.idAuditoria IS NOT NULL -- SI ES NULL, ENTONCES DICHO ACTIVO NO ESTA EN UNA AUDITORIA
+                            AND AU.fechaGuardada IS NULL
+                        THEN	
+                            case
+                                -- este select regresa el numero de activos fijos de auditorias no guardados que pertenezcan a la auditoria actual
+                                when (	select count(*)
+                                        from auditorias_activofijos aa
+                                        inner join auditorias a
+                                            on aa.idAuditoria = a.idAuditoria
+                                        where a.fechaGuardada is null
+                                        and aa.idActivoFijo = MVD.idActivoFijo
+                                        and aa.idAuditoria = ' . $auditoria_actual . ') >= 1
+                                then AUA.idAuditoria = ' . $auditoria_actual . '
+                                else AUA.idAuditoria = 	(
+                                                            select MAX(aa.idAuditoria)
+                                                            from auditorias_activofijos aa
+                                                            inner join auditorias a
+                                                                on aa.idAuditoria = a.idAuditoria
+                                                            where a.fechaGuardada is null
+                                                            and aa.idActivoFijo = MVD.idActivoFijo
+                                                            and aa.idAuditoria <> ' . $auditoria_actual . '
+                                                        )
+                            end 
+                        ELSE 1=1
+                    END
+            END'
+        )
+        ->where('MVD.idActivoFijo', $idActivo)
+        ->get();
+
+        if(isset($query[0])) {
+            return $query[0]->existencia_guardada;
+        } else {
+            return null;
+        }      
     }
 
     /**
