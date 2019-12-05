@@ -57,7 +57,23 @@ class ActivosController extends Controller
             ->select(
                 'MVD.idActivoFijo',
                 'ACT.descripcion',
-                DB::raw('CASE WHEN AU.fechaGuardada IS NULL THEN NULL ELSE CONVERT(AUA.existencia, SIGNED) END AS existencia_guardada'),
+                DB::raw('CASE WHEN AU.fechaGuardada IS NULL 
+                THEN NULL 
+                ELSE 
+                    CASE WHEN (	select count(*) 
+                                from auditorias_activofijos auat 
+                                where auat.idAuditoria = ' . $auditoria_actual . '
+                                and auat.idActivofijo = MVD.idActivoFijo) > 0
+                    THEN (	select auat.existencia_anterior 
+                            from auditorias_activofijos auat 
+                            where auat.idAuditoria = ' . $auditoria_actual . '
+                            and auat.idActivofijo = MVD.idActivoFijo
+                            order by auat.idAuditoria, auat.idActivoFijo
+                            limit 1)
+                    ELSE
+                        AUA.existencia
+                    END    
+                END as existencia_guardada'),
                 DB::raw('(select existencia from auditorias_activofijos where idAuditoria = ' . $auditoria_actual . ' and idActivoFijo = MVD.idActivoFijo) as "existencia_actual"'),
                 'AU.fechaGuardada AS fecha_existencia',
                 'AUA.idAuditoria as id_auditoria_existencia',
