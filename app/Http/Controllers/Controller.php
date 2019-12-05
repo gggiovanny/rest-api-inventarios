@@ -138,7 +138,7 @@ class Controller extends BaseController
     }
 
     public static function isTrue($string_container) {
-        if (strpos($string_container, "\x01") !== false) {
+        if (strpos($string_container, "\x01") !== false || $string_container == "1") {
             return true;
         } else {
             return false;
