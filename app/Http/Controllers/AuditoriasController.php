@@ -266,6 +266,10 @@ class AuditoriasController extends Controller
             return self::warningNoParameters();
         }
 
+        if(self::getCountAuditoriaActivosWithLocation($idDepartamento, $idClasificacion) == 0 ) {
+            return self::warningNoEntriesForThatLocation();
+        }
+
         
         if($idSameAuditoria = self::getSameNotSavedId($idEmpresa, $idDepartamento, $idClasificacion) > 0) {
             return self::warningSameAuditoriaInProgress($idSameAuditoria);
@@ -501,13 +505,62 @@ class AuditoriasController extends Controller
     }
 
     /**
+     * Regresa el conteo de activos de la auditoria
+     */
+    static private function getCountAuditoriaActivosWithLocation($idDepartamento, $idClasificacion) {
+        $sql = DB::select(DB::raw("
+            SELECT
+                COUNT(ACT.idActivoFijo) as auditoria_activos
+            FROM activosfijos ACT
+            JOIN movimiento_detalle MVD
+                ON MVD.idActivoFijo = ACT.idActivoFijo
+            JOIN movimientos MV
+                ON MV.idMovimiento = MVD.idMovimiento
+            
+            WHERE MV.fecha_acepta =	(
+                                        select MAX(m.fecha_acepta)
+                                        from movimientos m
+                                        inner join movimiento_detalle md
+                                            on m.idMovimiento = md.idMovimiento
+                                        where md.idActivoFijo = ACT.idActivoFijo
+                                    )
+            AND MV.destino = ".$idDepartamento."
+            AND ACT.idClasificacion = ".$idClasificacion."       
+        "));
+        return $sql[0]->auditoria_activos;
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        //
+        AuthController::validateCredentials($request);
+
+        /** Verificacion de que existe la auditoria solicitada */
+        $editAuditoria = Auditoria::find($id);
+        if ($editAuditoria === null) {
+            return self::warningEntryNoExist();
+        }
+
+        $countDeleted = DB::delete("
+            delete from auditorias
+            where idAuditoria = ".$id."
+            and terminada = 0
+            and fechaGuardada is null
+            and (	select count(*) from auditorias_activofijos
+                    where idAuditoria = ".$id.") = 0
+        ");
+
+        if($countDeleted > 0) {
+            return self::deleteOk();
+        } else {
+            return self::warningAuditoriaCantDelete();
+        }
+
+
     }
 }
