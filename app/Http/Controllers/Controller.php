@@ -14,8 +14,8 @@ class Controller extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     public static $PAGE_SIZE_DEFAULT = 25;
-    public static $msgAuditoriaTerminadaRegistro = 'No se pueden agregar activos a una auditoria marcada como terminada.';
-    public static $msgAuditoriaGuardada = 'No se puede editar una auditoria marcada como guardada.';
+    public static $msgAuditoriaTerminadaRegistro = 'No se pueden actualizar existencias de una auditoria marcada como terminada.';
+    public static $msgAuditoriaGuardada = 'No se pueden actualizar existencias de una auditoria finalizada y guardada.';
     
     public static function status($status, $description, $tipoRespuesta) {
         return array(
@@ -83,6 +83,13 @@ class Controller extends BaseController
         return Response($return, 201);
     }
 
+    public static function putOkPayload($payload)
+    {
+        $return = self::status('ok', 'Elemento actualizado exitosamente', ResponseType::PUT);
+        $return += ['payload' => $payload];
+        return Response($return, 201);
+    }
+
     public static function warningNoParameters()
     {
         $return = AuthController::status('warning', 'Faltan datos obligatorios!', ResponseType::WARNING);
@@ -109,7 +116,13 @@ class Controller extends BaseController
 
     public static function warningAuditoriaNoTerminada()
     {
-        $return = AuthController::status('warning', 'No se puede marcar como guardada una auditoria no terminada.', ResponseType::WARNING);
+        $return = AuthController::status('warning', 'No se puede finalizar y guardar una auditoria no marcada como terminada.', ResponseType::WARNING);
+        return Response($return, 209);
+    }
+
+    public static function warningAuditoriaActivosNoCompletados()
+    {
+        $return = AuthController::status('warning', 'Para marcar como terminada, tiene que validar todos los activos fijos de esta auditoria.', ResponseType::WARNING);
         return Response($return, 209);
     }
     
