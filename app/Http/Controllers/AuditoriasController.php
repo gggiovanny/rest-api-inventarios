@@ -399,101 +399,28 @@ class AuditoriasController extends Controller
      * con algun estatus valido (encontrado o no encontrado).
      */
     static private function activosTienenEstatusValido($idAuditoria) {
+        return self::getCountAuditoriaActivosValidados($idAuditoria) >= self::getCountAuditoriaActivosAll($idAuditoria);
+    }
+
+    /**
+     * Regresa el conteo de activos con algun estatus de existencia a seteado
+     */
+    static private function getCountAuditoriaActivosValidados($idAuditoria) {
         $sql = DB::select(DB::raw("
-        SELECT
-            CASE
-                WHEN 
-                (
-                    -- activos con algun estatus de existencia a seteado
-                    select count(auac.idActivoFijo) from auditorias_activofijos auac
-                    where auac.idAuditoria = ".$idAuditoria."
-                    and auac.existencia is not null
-                    and auac.idActivoFijo in (
-                        SELECT
-                                MVD.idActivoFijo
-                            FROM movimiento_detalle MVD
-                            INNER JOIN activosfijos ACT
-                                ON MVD.idActivoFijo = ACT.idActivoFijo
-                            INNER JOIN movimientos MV
-                                ON MVD.idMovimiento = MV.idMovimiento
-                            INNER JOIN departamentos DEP
-                                ON MV.destino = DEP.idDepartamento
-                            INNER JOIN empresas EMP
-                                ON DEP.idEmpresa = EMP.idEmpresa
-                            LEFT JOIN auditorias_activofijos AUA
-                                ON MVD.idActivoFijo = AUA.idActivoFijo
-                            LEFT JOIN auditorias AU
-                                ON AUA.idAuditoria = AU.idAuditoria
-                            WHERE ACT.estatus = 0
-                            AND MV.fecha_acepta =	(
-                                                        select MAX(m.fecha_acepta)
-                                                        from movimientos m
-                                                        inner join movimiento_detalle md
-                                                            on m.idMovimiento = md.idMovimiento
-                                                        where md.idActivoFijo = MVD.idActivoFijo
-                                                    )
-                            AND (-- NOTA: Se recorren todos los activos fijos de auditorias, por ello sin los CASE se verian identificadores repetidos de activo fijo.
-                                    CASE
-                                        -- CUANDO EL ACTIVO FIJO DE AUDITORIA ESTA GUARDADO, SOLO MOSTRAR EL MAS RECIENTE (los demas no pasan el filtro y no se visualizan).
-                                        WHEN (	select count(*)
-                                                from auditorias_activofijos aa
-                                                inner join auditorias a
-                                                    on aa.idAuditoria = a.idAuditoria
-                                                where a.fechaGuardada is not null
-                                                and aa.idActivoFijo = MVD.idActivoFijo ) >= 1
-                                        THEN AU.fechaGuardada =	(
-                                                                select MAX(a.fechaGuardada)
-                                                                from auditorias_activofijos aa
-                                                                inner join auditorias a
-                                                                    on aa.idAuditoria = a.idAuditoria
-                                                                where aa.idActivoFijo = MVD.idActivoFijo
-                                                                )
-                                        ELSE 
-                                            CASE
-                                                -- SI el activo fijo pertenece a alguna auditoria y NO esta guardado, solo traer 1, por lo que...
-                                                    -- SI hay alguno de la auditoria actual, mostrar solo ese
-                                                    -- SI NO, mostrar el mas reciente y ocultar su existencia, guardado y autor (ese ocultamiento se hace en el SELECT).
-                                                -- SI NO esta en ninguna auditoria, mostrarlo tal cual.
-                                                WHEN AUA.idAuditoria IS NOT NULL -- SI ES NULL, ENTONCES DICHO ACTIVO NO ESTA EN UNA AUDITORIA
-                                                    AND AU.fechaGuardada IS NULL
-                                                THEN	
-                                                    case
-                                                        -- este select regresa el numero de activos fijos de auditorias no guardados que pertenezcan a la auditoria actual
-                                                        when (	select count(*)
-                                                                from auditorias_activofijos aa
-                                                                inner join auditorias a
-                                                                    on aa.idAuditoria = a.idAuditoria
-                                                                where a.fechaGuardada is null
-                                                                and aa.idActivoFijo = MVD.idActivoFijo
-                                                                and aa.idAuditoria = ".$idAuditoria.") >= 1
-                                                        then AUA.idAuditoria = ".$idAuditoria."
-                                                        else AUA.idAuditoria = 	(
-                                                                                    select MAX(aa.idAuditoria)
-                                                                                    from auditorias_activofijos aa
-                                                                                    inner join auditorias a
-                                                                                        on aa.idAuditoria = a.idAuditoria
-                                                                                    where a.fechaGuardada is null
-                                                                                    and aa.idActivoFijo = MVD.idActivoFijo
-                                                                                    and aa.idAuditoria <> ".$idAuditoria."
-                                                                                )
-                                                    end 
-                                                ELSE 1=1
-                                            END
-                                    END			
-                                )
-        
-                            AND DEP.idDepartamento = (select au.idDepartamento from auditorias au where au.idAuditoria = ".$idAuditoria.")
-                            AND EMP.idEmpresa = (select au.idEmpresa from auditorias au where au.idAuditoria = ".$idAuditoria.")
-                            AND ACT.idClasificacion = (select au.idClasificacion from auditorias au where au.idAuditoria = ".$idAuditoria.")
-                    
-                    )
-                ) 
-                < 
-                (
-        
-                    -- Total de activos
+        select count(*) as auditoria_activos_validados
+        from auditorias_activofijos
+        where idAuditoria = ".$idAuditoria."
+        "));      
+        return $sql[0]->auditoria_activos_validados;
+    }
+
+    /**
+     * Regresa el conteo de activos de la auditoria
+     */
+    static private function getCountAuditoriaActivosAll($idAuditoria) {
+        $sql = DB::select(DB::raw("
                     SELECT
-                                count(MVD.idActivoFijo)
+                                count(MVD.idActivoFijo) as auditoria_activos
                             FROM movimiento_detalle MVD
                             INNER JOIN activosfijos ACT
                                 ON MVD.idActivoFijo = ACT.idActivoFijo
@@ -568,14 +495,9 @@ class AuditoriasController extends Controller
                             AND DEP.idDepartamento = (select au.idDepartamento from auditorias au where au.idAuditoria = ".$idAuditoria.")
                             AND EMP.idEmpresa = (select au.idEmpresa from auditorias au where au.idAuditoria = ".$idAuditoria.")
                             AND ACT.idClasificacion = (select au.idClasificacion from auditorias au where au.idAuditoria = ".$idAuditoria.")
-                    )
-                    THEN false
-                    ELSE true
-            END
-        as es_valida;
         "));
 
-        return $sql[0]->es_valida;
+        return $sql[0]->auditoria_activos;
     }
 
     /**
