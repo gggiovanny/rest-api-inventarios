@@ -40,6 +40,12 @@ class Controller extends BaseController
         return Response($return, 209);
     }
 
+    public static function warningNoEntriesForThatLocation()
+    {
+        $return = self::status('warning', 'No existen activos fijos registrados para los filtros seleccionados. Seleccione otros filtros, o si está seguro que son los filtros correctos, solicite el alta de dichos activos en la localización correcta.', ResponseType::WARNING);
+        return Response($return, 209);
+    }
+
     public static function okPartialLogin($description)
     {
         return AuthController::status('ok', $description, ResponseType::GET);
@@ -90,6 +96,12 @@ class Controller extends BaseController
         return Response($return, 201);
     }
 
+    public static function deleteOk()
+    {
+        $return = AuthController::status('ok', 'Elemento borrado exitosamente', ResponseType::DELETE);
+        return Response($return, 201);
+    }
+
     public static function warningNoParameters()
     {
         $return = AuthController::status('warning', 'Faltan datos obligatorios!', ResponseType::WARNING);
@@ -112,7 +124,13 @@ class Controller extends BaseController
     {
         $return = AuthController::status('warning', 'No se puede editar una auditoria marcada como guardada.', ResponseType::WARNING);
         return Response($return, 209);
-    }    
+    }   
+    
+    public static function warningAuditoriaCantDelete()
+    {
+        $return = AuthController::status('warning', 'Solo se pueden borrar auditorias sin elementos.', ResponseType::WARNING);
+        return Response($return, 209);
+    }  
 
     public static function warningAuditoriaNoTerminada()
     {
