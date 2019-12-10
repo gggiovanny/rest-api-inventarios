@@ -54,8 +54,8 @@ class ActivosController extends Controller
         ];
 
         $existencia_actual_enum = [
-            "0"     => 'Encontrado',
-            "1"     => 'No encontrado',
+            "0"     => 'No encontrado',
+            "1"     => 'Encontrado',
             "null"  => 'Sin definir'
         ];
 
