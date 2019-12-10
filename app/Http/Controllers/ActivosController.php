@@ -46,6 +46,19 @@ class ActivosController extends Controller
             return self::warningNoExisteAuditoriaParaId($auditoria_actual, $auditoria_max_id);
         }
 
+        /** enums de estatus de existencia */
+        $existencia_guardada_enum = [
+            "0"     => 'Existencia no registrada',
+            "1"     => 'Existencia registrada',
+            "null"  => 'Existencia desconocida'
+        ];
+
+        $existencia_actual_enum = [
+            "0"     => 'Encontrado',
+            "1"     => 'No encontrado',
+            "null"  => 'Sin definir'
+        ];
+
 
         $query = DB::table('movimiento_detalle AS MVD')
             ->join('activosfijos AS ACT', 'MVD.idActivoFijo', 'ACT.idActivoFijo')
@@ -57,24 +70,57 @@ class ActivosController extends Controller
             ->select(
                 'MVD.idActivoFijo',
                 'ACT.descripcion',
+
                 DB::raw('CASE WHEN AU.fechaGuardada IS NULL 
-                THEN NULL 
+                THEN "'.$existencia_actual_enum["null"].'" 
                 ELSE 
                     CASE WHEN (	select count(*) 
                                 from auditorias_activofijos auat 
                                 where auat.idAuditoria = ' . $auditoria_actual . '
                                 and auat.idActivofijo = MVD.idActivoFijo) > 0
-                    THEN (	select auat.existencia_anterior 
+                    THEN (	select
+                                CASE 
+                                    WHEN auat.existencia_anterior = 0 THEN "'.$existencia_guardada_enum["0"].'" 
+                                    WHEN auat.existencia_anterior = 1 THEN "'.$existencia_guardada_enum["1"].'" 
+                                    ELSE "'.$existencia_actual_enum["null"].'" 
+                                END                                 
                             from auditorias_activofijos auat 
                             where auat.idAuditoria = ' . $auditoria_actual . '
                             and auat.idActivofijo = MVD.idActivoFijo
                             order by auat.idAuditoria, auat.idActivoFijo
                             limit 1)
                     ELSE
-                        AUA.existencia
+                        CASE 
+                            WHEN AUA.existencia = 0 THEN "'.$existencia_guardada_enum["0"].'" 
+                            WHEN AUA.existencia = 1 THEN "'.$existencia_guardada_enum["1"].'" 
+                            ELSE "'.$existencia_actual_enum["null"].'" 
+                        END
                     END    
                 END as existencia_guardada'),
-                DB::raw('(select existencia from auditorias_activofijos where idAuditoria = ' . $auditoria_actual . ' and idActivoFijo = MVD.idActivoFijo) as "existencia_actual"'),
+
+                DB::raw('(
+                    CASE
+                        WHEN    (   select count(*)
+                                    from auditorias_activofijos 
+                                    where idAuditoria = ' . $auditoria_actual . ' 
+                                    and idActivoFijo = MVD.idActivoFijo
+                                ) > 0
+                        THEN 
+                        (
+                            select 
+                                CASE 
+                                    WHEN existencia = 0 THEN "'.$existencia_actual_enum["0"].'" 
+                                    WHEN existencia = 1 THEN "'.$existencia_actual_enum["1"].'" 
+                                    ELSE "'.$existencia_actual_enum["null"].'" 
+                                END
+                            from auditorias_activofijos 
+                            where idAuditoria = ' . $auditoria_actual . ' 
+                            and idActivoFijo = MVD.idActivoFijo
+                        )
+                        ELSE "'.$existencia_actual_enum["null"].'"
+                    END                   
+                    ) as "existencia_actual"'),
+
                 'AU.fechaGuardada AS fecha_existencia',
                 'AUA.idAuditoria as id_auditoria_existencia',
                 'AU.idUser AS auditoria_autor',
@@ -166,20 +212,19 @@ class ActivosController extends Controller
 
 
         /** Filtrado de los registros nulos y retirado de los existencias  de auditorias no guardadas */
-        $query = $query->filter(function ($registro) {
-            if (is_null($registro->existencia_guardada) || is_null($registro->fecha_existencia)) {
-                unset($registro->existencia_guardada);
-                unset($registro->fecha_existencia);
-                unset($registro->id_auditoria_existencia);
-                unset($registro->auditoria_autor);
-            }
+        // $query = $query->filter(function ($registro) {
+        //     if (is_null($registro->fecha_existencia)) {
+        //         unset($registro->fecha_existencia);
+        //         unset($registro->id_auditoria_existencia);
+        //         unset($registro->auditoria_autor);
+        //     }
 
-            if (is_null($registro->existencia_actual)) {
-                unset($registro->existencia_actual);
-            }
+        //     if (is_null($registro->existencia_actual)) {
+        //         unset($registro->existencia_actual);
+        //     }
 
-            return true;
-        });
+        //     return true;
+        // });
 
 
         return self::queryOk($query);
