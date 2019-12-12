@@ -302,12 +302,78 @@ class AuditoriasController extends Controller
     {
         AuthController::validateCredentials($request);
 
-        $query = Auditoria::find($id);
-        if ($query) {
-            return self::queryOk($query);
-        } else {
-            return self::warningEntryNoExist();
-        }
+        $status_catalog = [
+            1 => 'En curso',
+            2 => 'Terminada',
+            3 => 'Guardada',
+            0 => 'Cualquiera'
+        ];
+
+        DB::statement("SET lc_time_names = 'es_MX';");
+        $query = Auditoria::join('users as u', 'auditorias.idUser', 'u.id')
+            ->leftJoin('profiles as p', 'u.id', 'p.user_id')
+            ->leftJoin('user_empresas as ue', 'u.id', 'ue.idUsuario')
+            ->leftJoin('empresas as eu', 'ue.idEmpresa', 'eu.idEmpresa')
+            ->leftJoin('empresas as e', 'auditorias.idEmpresa', 'e.idEmpresa')
+            ->leftJoin('departamentos as d', 'auditorias.idDepartamento', 'd.idDepartamento')
+            ->leftJoin('clasificaciones as c', 'auditorias.idClasificacion', 'c.idClasificacion')
+            ->select(
+                "idAuditoria as id",
+                DB::raw("DATE_FORMAT(fechaCreacion, '%e de %M, %Y') as fechaCreacion"),
+                DB::raw("(  CASE
+                                        WHEN terminada = 0 AND fechaGuardada is null THEN '$status_catalog[1]'
+                                        WHEN terminada = 1 AND fechaGuardada is null THEN '$status_catalog[2]'
+                                        WHEN terminada = 1 AND fechaGuardada is not null THEN '$status_catalog[3]'
+                                        ELSE '$status_catalog[0]'
+                                    END
+                        ) as status"),
+                "auditorias.descripcion",
+                "u.username",
+                DB::raw("CONCAT(p.firstname, ' ',p.lastname) as autor_nombre"),
+                "eu.nombre as empresa_usuario",
+                "auditorias.idEmpresa",
+                "e.nombre as empresa",
+                "auditorias.idDepartamento",
+                "d.nombre as departamento",
+                "auditorias.idClasificacion",
+                "c.nombre as clasificacion",
+                "terminada",
+                "fechaGuardada"
+            )
+            ->where("auditorias.idAuditoria", $id)
+
+            
+            
+          
+            ->get();
+
+        /** Filtrado de los registros nulos */
+        $query = $query->filter(function ($registro) {
+            if (is_null($registro->idDepartamento)) {
+                unset($registro->idDepartamento);
+                unset($registro->departamento);
+            }
+            if (is_null($registro->idEmpresa)) {
+                unset($registro->idEmpresa);
+                unset($registro->empresa);
+            }
+            if (is_null($registro->idClasificacion)) {
+                unset($registro->idClasificacion);
+                unset($registro->clasificacion);
+            }
+            if (is_null($registro->fechaGuardada)) {
+                unset($registro->fechaGuardada);
+            }
+            if (is_null($registro->descripcion)) {
+                unset($registro->descripcion);
+            }
+
+            $registro->terminada = self::getCorrectBooleanStr($registro->terminada);
+
+            return true;
+        });
+        
+        return self::queryOk($query[0]);
     }
 
     /**
