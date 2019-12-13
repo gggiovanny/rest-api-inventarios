@@ -212,19 +212,19 @@ class ActivosController extends Controller
 
 
         /** Filtrado de los registros nulos y retirado de los existencias  de auditorias no guardadas */
-        // $query = $query->filter(function ($registro) {
-        //     if (is_null($registro->fecha_existencia)) {
-        //         unset($registro->fecha_existencia);
-        //         unset($registro->id_auditoria_existencia);
-        //         unset($registro->auditoria_autor);
-        //     }
+        $query = $query->filter(function ($registro) {
+            if (is_null($registro->fecha_existencia)) {
+                unset($registro->fecha_existencia);
+                unset($registro->id_auditoria_existencia);
+                unset($registro->auditoria_autor);
+            }
 
-        //     if (is_null($registro->existencia_actual)) {
-        //         unset($registro->existencia_actual);
-        //     }
+            if (is_null($registro->existencia_actual)) {
+                unset($registro->existencia_actual);
+            }
 
-        //     return true;
-        // });
+            return true;
+        });
 
 
         return self::queryOk($query);
