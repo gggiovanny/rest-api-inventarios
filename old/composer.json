@@ -1,5 +1,5 @@
 {
     "require": {
-        "illuminate/database": "v5.4.36"
+        "illuminate/database": "v6.20.26"
     }
 }
